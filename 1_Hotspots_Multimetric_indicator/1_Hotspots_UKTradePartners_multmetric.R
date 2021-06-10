@@ -64,19 +64,18 @@ files <- list.files(paste0(datadir, "/Marks_Maps"), pattern = "_Total.tif")
 # "P_Marine_BioDiv_Total.tif"
 # "Water_Debt_Total.tif" 
 
-# taking an initial look at Mark's maps
 
+
+## taking an initial look at Mark's maps
 # each file can be opened as a raster stack which has a band per crop (See table in README from Mark)
-
-# resolution: 0.08333333
 
 map1_stack <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
 
-plot(map1[[2]])       
+plot(map1_stack[[1]])       
 
-res(map1)
+res(map1_stack[[1]]) # 0.08333333 0.08333333
 
-crs(map1)
+crs(map1_stack[[1]])# +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
 
 
 #### get country border data for the list of countries ####
@@ -97,4 +96,27 @@ ctry_shps = do.call("bind", lapply(codes$countries,
                                    function(x) getData('GADM', country=x, level=0)))
 
 
+# save this polygons object for future use
+
+
+
+
+
 #### get some summary stat for each country/indicator/crop combo ####
+
+
+# thinking... which stats will be useful
+# mean across cells
+# range 
+# sd
+
+# what other summaries would be good?
+
+
+
+
+
+
+
+
+
