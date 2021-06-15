@@ -127,7 +127,7 @@ GHG <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
 # use exact_extract function to get some summary stats per country/band
 # the function does the same for each layer automatically
 
-GHG_sums <- exact_extract(x = GHG, y = ctry_shps, fun = c('mean', 'min', 'max', 'median', 'stdev'))
+GHG_sums <- exact_extract(x = GHG, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(GHG_sums) <- ctry_shps$NAME_0
@@ -142,58 +142,74 @@ colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
 
 LND <- stack(paste0(datadir, "/Marks_Maps/", files[2]))
 
-LND_sums <- exact_extract(x = LND, y = ctry_shps, fun = c('mean', 'min', 'max', 'median', 'stdev'))
+LND_sums <- exact_extract(x = LND, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(LND_sums) <- ctry_shps$NAME_0
 
-colnames(LND_sums) <- sub("GHG_Emissons_Total.1", "Cocoa", colnames(LND_sums))
-colnames(LND_sums) <- sub("GHG_Emissons_Total.2", "Oilpalm", colnames(LND_sums))
-colnames(LND_sums) <- sub("GHG_Emissons_Total.3", "SugarBeet", colnames(LND_sums))
-colnames(LND_sums) <- sub("GHG_Emissons_Total.4", "SugarCane", colnames(LND_sums))
-colnames(LND_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_Total.1", "Cocoa", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_Total.2", "Oilpalm", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_Total.3", "SugarBeet", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_Total.4", "SugarCane", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_Total.5", "Wheat", colnames(LND_sums))
 
 #### 3. N biodiv impact ####
 
 Nit <- stack(paste0(datadir, "/Marks_Maps/", files[3]))
 
-Nit_sums <- exact_extract(x = Nit, y = ctry_shps, fun = c('mean', 'min', 'max', 'median', 'stdev'))
+Nit_sums <- exact_extract(x = Nit, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(Nit_sums) <- ctry_shps$NAME_0
 
-colnames(Nit_sums) <- sub("GHG_Emissons_Total.1", "Oilpalm", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("GHG_Emissons_Total.2", "SugarBeet", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("GHG_Emissons_Total.3", "SugarCane", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("GHG_Emissons_Total.4", "Wheat", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.1", "Oilpalm", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.2", "SugarBeet", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.3", "SugarCane", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.4", "Wheat", colnames(Nit_sums))
 
 
 #### 4. P biodiv impact ####
 
 Pho <- stack(paste0(datadir, "/Marks_Maps/", files[4]))
 
-Pho_sums <- exact_extract(x = Pho, y = ctry_shps, fun = c('mean', 'min', 'max', 'median', 'stdev'))
+Pho_sums <- exact_extract(x = Pho, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(Pho_sums) <- ctry_shps$NAME_0
 
-colnames(Pho_sums) <- sub("GHG_Emissons_Total.1", "Oilpalm", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("GHG_Emissons_Total.2", "SugarBeet", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("GHG_Emissons_Total.3", "SugarCane", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("GHG_Emissons_Total.4", "Wheat", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.1", "Oilpalm", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.2", "SugarBeet", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.3", "SugarCane", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.4", "Wheat", colnames(Pho_sums))
 
 
 #### 5. water debt ####
 
 WAT <- stack(paste0(datadir, "/Marks_Maps/", files[5]))
 
-WAT_sums <- exact_extract(x = WAT, y = ctry_shps, fun = c('mean', 'min', 'max', 'median', 'stdev'))
+WAT_sums <- exact_extract(x = WAT, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(WAT_sums) <- ctry_shps$NAME_0
 
-colnames(WAT_sums) <- sub("GHG_Emissons_Total.1", "Oilpalm", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("GHG_Emissons_Total.2", "SugarBeet", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("GHG_Emissons_Total.3", "SugarCane", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("GHG_Emissons_Total.4", "Wheat", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Cocoa", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.2", "Oilpalm", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.3", "SugarBeet", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.4", "SugarCane", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.5", "Wheat", colnames(WAT_sums))
+
+
+
+
+# next: create visualisations of the total impacts as detailed in the sum columns in the tables above for each vountry/crop/metric
+
+# possibly some kind of bar chart, colour for each crop
+
+
+
+# next: create a map for each country of the combined multimetric indicator (once we have it from Mark)
+
+
+
+
 
