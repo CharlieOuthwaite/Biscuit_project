@@ -23,6 +23,7 @@ rm(list = ls())
 library(raster)
 library(rgdal)
 library(exactextractr) # exact_extract function from here
+library(ggplot2)
 
 
 # set directories
@@ -45,7 +46,7 @@ list.files(paste0(datadir, "/Marks_Maps"), pattern = ".tif")
 # read in Carole's list
 suppliers <- read.csv(paste0(datadir, "/UK_Suppliers_main_crops_Carole.csv"))
 
-View(suppliers)
+#View(suppliers)
 
 # get a list of countries (note this does not include cocoa at the moment)
 countries <- unique(suppliers$partner)
@@ -72,13 +73,10 @@ files <- list.files(paste0(datadir, "/Marks_Maps"), pattern = "_Total.tif")
 ## taking an initial look at Mark's maps
 # each file can be opened as a raster stack which has a band per crop (See table in README from Mark)
 
-map1_stack <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
-
-plot(map1_stack[[1]])       
-
-res(map1_stack[[1]]) # 0.08333333 0.08333333
-
-crs(map1_stack[[1]])# +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
+#map1_stack <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
+#plot(map1_stack[[1]])       
+#res(map1_stack[[1]]) # 0.08333333 0.08333333
+#crs(map1_stack[[1]])# +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 
 
 
 #### get country border data for the list of countries ####
@@ -106,7 +104,6 @@ plot(map1_stack[[1]], add = TRUE)
 
 # save this polygons object for future use
 shapefile(ctry_shps, filename = paste0(outdir, "/Trade_partners_polygons.shp"))
-
 
 
 #### get some summary stat for each country/indicator/crop combo ####
@@ -138,6 +135,7 @@ colnames(GHG_sums) <- sub("GHG_Emissons_Total.3", "SugarBeet", colnames(GHG_sums
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.4", "SugarCane", colnames(GHG_sums))
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
 
+
 #### 2. Land biodiversity impact ####
 
 LND <- stack(paste0(datadir, "/Marks_Maps/", files[2]))
@@ -167,6 +165,7 @@ colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.2", "SugarBeet", colnames(Nit_s
 colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.3", "SugarCane", colnames(Nit_sums))
 colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.4", "Wheat", colnames(Nit_sums))
 
+Nit_sums$sum.Cocoa <- NA
 
 #### 4. P biodiv impact ####
 
@@ -182,6 +181,7 @@ colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.2", "SugarBeet", colnames(Pho_s
 colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.3", "SugarCane", colnames(Pho_sums))
 colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.4", "Wheat", colnames(Pho_sums))
 
+Pho_sums$sum.Cocoa <- NA
 
 #### 5. water debt ####
 
@@ -192,12 +192,12 @@ WAT_sums <- exact_extract(x = WAT, y = ctry_shps, fun = c('sum', 'mean', 'min', 
 # need to organise the outputted info
 rownames(WAT_sums) <- ctry_shps$NAME_0
 
-colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Cocoa", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.2", "Oilpalm", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.3", "SugarBeet", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.4", "SugarCane", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.5", "Wheat", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Oilpalm", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.2", "SugarBeet", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.3", "SugarCane", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_Total.4", "Wheat", colnames(WAT_sums))
 
+WAT_sums$sum.Cocoa <- NA
 
 
 
@@ -206,8 +206,119 @@ colnames(WAT_sums) <- sub("Water_Debt_Total.5", "Wheat", colnames(WAT_sums))
 # possibly some kind of bar chart, colour for each crop
 
 
+all_sums <- rbind(GHG_sums[, c(grep("sum", colnames(GHG_sums)))],
+                  LND_sums[, c(grep("sum", colnames(LND_sums)))],
+                  Nit_sums[, c(grep("sum", colnames(Nit_sums)))],
+                  Pho_sums[, c(grep("sum", colnames(Pho_sums)))],
+                  WAT_sums[, c(grep("sum", colnames(WAT_sums)))])
 
-# next: create a map for each country of the combined multimetric indicator (once we have it from Mark)
+
+all_sums$metric <- c(rep("GHG", 21), rep("LND", 21), rep("Nit", 21), rep("Pho", 21), rep("WAT", 21))
+
+View(all_sums)
+
+all_sums$Country <- sub("[0-9]+", "", rownames(all_sums))
+
+
+# need to organise data into long format
+
+plot_data <- matrix(nrow = 525, ncol = 4)
+
+plot_data[, 1] <- c(all_sums[, 1], all_sums[, 2], all_sums[, 3], all_sums[, 4], all_sums[, 5])
+
+plot_data[, 2] <- rep(all_sums$metric, 5)
+
+plot_data[, 3] <- rep(all_sums$Country, 5)
+
+plot_data[, 4] <- c(rep("Cocoa", 105), rep("OilPalm", 105), rep("SugarBeet", 105), rep("SugarCane", 105), rep("Wheat", 105))
+
+colnames(plot_data) <- c("Value", "Metric", "Country", "Crop")
+
+plot_data <- as.data.frame(plot_data)
+
+plot_data$Value <- as.numeric(as.character(plot_data$Value))
+
+# create a plot, panel for each
+
+ggplot(data = plot_data) + 
+  geom_col(aes(x = Country, y = Value, fill = Crop)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#8B4500", "#CD9B1D", "#458B00", "#9ACD32", "#EEB422")) +
+  theme_bw() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, vjust=0.5))
+  
+
+ggsave(filename = paste0(outdir, "/Plot_indicators_UK_partners.pdf"), width = 9, height = 6)
+
+
+
+
+# create similar plots but just for the specific countries of interest per crop
+
+
+cocoa_dat <- na.omit(plot_data[plot_data$Crop == "Cocoa" & plot_data$Country %in% c("Cote d'Ivoire", "Ghana", "Nigeria", "Cameroon", "Indonesia"),  ])
+
+ggplot(data = cocoa_dat) + 
+  geom_col(aes(x = Country, y = Value, fill = Metric)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#00008B", "#006400")) +
+  theme_bw() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust=0.5)) + 
+  ggtitle("Cocoa")
+
+ggsave(filename = paste0(outdir, "/Cocoa_indicators_major_partners.pdf"))
+
+
+palm_dat <- na.omit(plot_data[plot_data$Crop == "OilPalm" & plot_data$Country %in% c("Malaysia", "Indonesia", "Papua New Guinea", "Nigeria", "Brazil"),  ])
+
+ggplot(data = palm_dat) + 
+  geom_col(aes(x = Country, y = Value, fill = Metric)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#00008B", "#006400", "#00CD00", "#FF7F00", "#104E8B")) +
+  theme_bw() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust=0.5)) + 
+  ggtitle("Oil Palm")
+
+ggsave(filename = paste0(outdir, "/OilPalm_indicators_major_partners.pdf"))
+
+
+beet_dat <- na.omit(plot_data[plot_data$Crop == "SugarBeet" & plot_data$Country %in% c("United Kingdom", "France"),  ])
+
+ggplot(data = beet_dat) + 
+  geom_col(aes(x = Country, y = Value, fill = Metric)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#00008B", "#006400", "#00CD00", "#FF7F00", "#104E8B")) +
+  theme_bw() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust=0.5)) + 
+  ggtitle("Sugar Beet")
+
+ggsave(filename = paste0(outdir, "/SugarBeet_indicators_major_partners.pdf"))
+
+
+cane_dat <- na.omit(plot_data[plot_data$Crop == "SugarCane" & plot_data$Country %in% c("Mauritius", "Fiji", "Jamaica", "Swaziland", "Belize", "Trinidad and Tobago", "Zimbabwe", "South Africa"),  ])
+
+ggplot(data = cane_dat) + 
+  geom_col(aes(x = Country, y = Value, fill = Metric)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#00008B", "#006400", "#00CD00", "#FF7F00", "#104E8B")) +
+  theme_bw() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust=0.5)) + 
+  ggtitle("Sugar Cane")
+
+ggsave(filename = paste0(outdir, "/SugarCane_indicators_major_partners.pdf"))
+
+
+wheat_dat <- na.omit(plot_data[plot_data$Crop == "Wheat" & plot_data$Country %in% c("United Kingdom","France", "Canada", "Germany", "United States of America"),  ])
+
+ggplot(data = wheat_dat) + 
+  geom_col(aes(x = Country, y = Value, fill = Metric)) +
+  facet_wrap(~ Metric, scales = "free_y") + 
+  scale_fill_manual(values = c("#00008B", "#006400", "#00CD00", "#FF7F00", "#104E8B")) +
+  theme_bw() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 90, vjust=0.5)) + 
+  ggtitle("Wheat")
+
+ggsave(filename = paste0(outdir, "/Wheat_indicators_major_partners.pdf"))
 
 
 
