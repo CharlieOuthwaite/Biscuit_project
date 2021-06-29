@@ -550,3 +550,4 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
 makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa", "Species Richness Birds and GHG Emission of Cocoa", outlierY = 3500)
 
 
+
