@@ -550,4 +550,22 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
 makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa", "Species Richness Birds and GHG Emission of Cocoa", outlierY = 3500)
 
 
+# Task 6 - load MapSPAM & and make bivariate map with SR (as suggested by Abbie) 29/06/21 ####
+
+filesMapSPAM <- list.files(paste0(MapSPAM), pattern = "_A.tif", full.names = TRUE)
+
+filesMapSPAM
+
+#load in species richness data (credits: Adrienne)
+SPAM_Coco<-raster(paste0(filesMapSPAM[1]))
+SPAM_Oilp<-raster(paste0(filesMapSPAM[2]))
+SPAM_Sugb<-raster(paste0(filesMapSPAM[3]))
+SPAM_Sugc<-raster(paste0(filesMapSPAM[4]))
+SPAM_Whea<-raster(paste0(filesMapSPAM[5]))
+
+
+#coco and species richness amph
+makeBivmap(SR_Amphibians_50k,SPAM_Coco,10, "Species richness", "harvested area", "Birds", "Cocoa", "Species Richness Birds and harvested area of Cocoa")
+
+
 
