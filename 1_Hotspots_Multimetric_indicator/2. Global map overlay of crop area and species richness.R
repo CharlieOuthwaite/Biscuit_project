@@ -336,8 +336,11 @@ bivariate.map <- function(rasterx, rastery, colormatrix = col.matrix,
 #rasterYSUBtitle - e.g. "Wheat" (needs "" to work)
 #subtitle - e.g. "Species Richness Birds and GHG Emission of Cocoa" (needs "" to work)
 #outlierY - only added in case the rasterY data has an outlier (e.g. GHG_wheat has outliers above 2000 --> outlierY=2000)
+#AllArea = TRUE - bivariate map fills all areas - including areas where data is only available from a single raster  
+#  "     = FALSE - bivariate map shows only areas where both datasets overlap
 
-makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, rasterXSUBtitle, rasterYSUBtitle, subtitle, outlierY=0){
+makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, rasterXSUBtitle, 
+                      rasterYSUBtitle, subtitle, outlierY=0, AllArea = TRUE){
   #crop rasterX to match extend of rasterY
   b <- extent(-17372530, 17372470,  0.99*(-6357770), 0.99*(7347230))
   rasterX_crp <- crop(rasterX, b)
@@ -362,7 +365,8 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
   RY <- resampledY
   
   #continue preparing for bivariate.map function:
-  #resampledY[is.na(resampledY[])] <- 0 #for the bivariate map to work all na to 0 is needed
+  if (AllArea) {  resampledY[is.na(resampledY[])] <- 0
+  }
   
   #Bivariate Map
   col.matrix <- colmat(nquantiles = nBreaks, xlab = rasternameY, ylab =rasternameX, 
@@ -545,6 +549,7 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
   
   
 }
+
 
 #example:
 makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa", "Species Richness Birds and GHG Emission of Cocoa", outlierY = 3500)
