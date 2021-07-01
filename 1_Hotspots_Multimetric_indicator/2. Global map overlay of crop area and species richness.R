@@ -114,6 +114,9 @@ SRdir <- "Species_Richness_Maps"
 #Mark's data in different dir
 MMdir <- "Data"
 
+#set dir for saving maps
+mapdir <- "Bivariate Map/RawMapsReadytobesorted"
+
 
 #Task 2 - import Species Richness files####
 #create list of Species Richness files
@@ -325,22 +328,22 @@ bivariate.map <- function(rasterx, rastery, colormatrix = col.matrix,
   return(r)
 }
 
-#Task 6 - Automate the making of maps####
-
+# Task 8 - Automate the making of maps####
 #since this is made for SR maps from Adrienne; it is assumed that rasterX is always has the coarser and a Berhman projection
-#rasterX - raster with coarser resolution
-#rasterY - raster with finer resolution
-#rasternameX - e.g. "Species Richness" (needs "" to work)
-#rasternameY - e.g. "GHG Emission" (needs "" to work)
-#rasterXSUBtitle - e.g. "Birds" (needs "" to work)
-#rasterYSUBtitle - e.g. "Wheat" (needs "" to work)
-#subtitle - e.g. "Species Richness Birds and GHG Emission of Cocoa" (needs "" to work)
+#rasterX          - raster with coarser resolution
+#rasterY          - raster with finer resolution
+#rasternameX      - e.g. "Species Richness" (needs "" to work)
+#rasternameY      - e.g. "GHG Emission" (needs "" to work)
+#rasterXSUBtitle  - e.g. "Birds" (needs "" to work)
+#rasterYSUBtitle  - e.g. "Wheat" (needs "" to work)
+#subtitle         - e.g. "Species Richness Birds and GHG Emission of Cocoa" (needs "" to work)
+#PATH             - e.g. SRdir (SRdir being a dir assigned to a object) or "/Users/Feli/Documents/Cookie Project" or which ever dir you want
 #outlierY - only added in case the rasterY data has an outlier (e.g. GHG_wheat has outliers above 2000 --> outlierY=2000)
-#AllArea = TRUE - bivariate map fills all areas - including areas where data is only available from a single raster  
-#  "     = FALSE - bivariate map shows only areas where both datasets overlap
+#AllArea = 1 - bivariate map fills all areas - including areas where data is only available from a single raster  
+#  "     ≠ 1 - bivariate map shows only areas where both datasets overlap
 
 makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, rasterXSUBtitle, 
-                      rasterYSUBtitle, subtitle, outlierY=0, AllArea = TRUE){
+                      rasterYSUBtitle, subtitle, PATH, outlierY=0, AllArea = 1){
   #crop rasterX to match extend of rasterY
   b <- extent(-17372530, 17372470,  0.99*(-6357770), 0.99*(7347230))
   rasterX_crp <- crop(rasterX, b)
@@ -365,7 +368,8 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
   RY <- resampledY
   
   #continue preparing for bivariate.map function:
-  if (AllArea) {  resampledY[is.na(resampledY[])] <- 0
+  if (AllArea == 1) {  
+    resampledY[is.na(resampledY[])] <- 0
   }
   
   #Bivariate Map
@@ -418,7 +422,6 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
     draw_plot(BivLegend +
                 theme(plot.background = element_rect(fill = "white", colour = NA)),
               width = 0.25, height = 0.25, x = 0, y = 0.3)
-  print(fig)
   
   #fig2 is for combining maps all three maps (bivariate, rasterx, rastery) in one patched map
   fig2 <- ggdraw(map) + 
@@ -460,7 +463,7 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
           axis.text = element_text(size = 12, colour = "black"),
           axis.title = element_text(size = 12, colour = "black"))
   
-  print(maprasterY1)
+  maprasterY1
   
   #for combined/patched map (rasterY)
   maprasterY2 <- ggplot(rasterY_df, aes(x = x, y = y))+
@@ -517,8 +520,7 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
           axis.text.y = element_text(angle = 90, hjust = 0.5),
           axis.text = element_text(size = 12, colour = "black"),
           axis.title = element_text(size = 12, colour = "black"))
-  print(maprasterX1)
-  
+
   #for combined/patched map (rasterX)
   maprasterX2 <- ggplot(rasterX_df, aes(x = x, y = y))+
     geom_tile(aes(fill = X_value)) +
@@ -542,24 +544,52 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
           axis.text.y = element_text(angle = 90, hjust = 0.5),
           axis.text = element_text(size = 12, colour = "black"),
           axis.title = element_text(size = 12, colour = "black"))
-  maprasterX2
+  #maprasterX2
   
-  #Combined|Patched Map (Bivariate, RasterX and RasterY) ####
-  maprasterX2 + maprasterY2 - fig2 +  plot_layout(ncol = 1,widths = c(2, 1), heights = unit(c(1, 13), c('null','cm')))
+  #Combined|Patched Map (Bivariate, RasterX and RasterY)####
+  combined <- maprasterX2 + maprasterY2 - fig2 +  plot_layout(ncol = 1,widths = c(2, 1), heights = unit(c(1, 13), c('null','cm')))
+  
+  
+  #save all plots | change if different label is preferred####
+  if (AllArea == 1) {
+    ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
+                              "Harv_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
+    ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
+                                   "Harv_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+  } else {
+    ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
+                              "Harv_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+    ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
+                                   "Harv_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+    
+  }
+  ggsave(maprasterX1,filename=paste(rasterXSUBtitle, rasternameX, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
+  ggsave(maprasterY1,filename=paste(rasterYSUBtitle, rasternameY, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
   
   
 }
 
+#
+#path/dir for saving maps: mapdir
 
 #example:
-makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa", "Species Richness Birds and GHG Emission of Cocoa", outlierY = 3500)
+makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa","Species Richness Birds and GHG Emission of Cocoa",mapdir, outlierY = 3500, AllArea = 0)
 
 
-# Task 6 - load MapSPAM & and make bivariate map with SR (as suggested by Abbie) 29/06/21 ####
+#
 
+# Task 9 - load MapSPAM & and make bivariate map with SR (as suggested by Abbie) 29/06/21 ####
+
+#create list with all MapSPAM file names
 filesMapSPAM <- list.files(paste0(MapSPAM), pattern = "_A.tif", full.names = TRUE)
 
+#check names:
 filesMapSPAM
+#[1] "MapSPAM_Cookie/spam2010V2r0_global_H_COCO_A.tif"
+#[2] "MapSPAM_Cookie/spam2010V2r0_global_H_OILP_A.tif"
+#[3] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGB_A.tif"
+#[4] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGC_A.tif"
+#[5] "MapSPAM_Cookie/spam2010V2r0_global_H_WHEA_A.tif"
 
 #load in species richness data (credits: Adrienne)
 SPAM_Coco<-raster(paste0(filesMapSPAM[1]))
@@ -568,9 +598,7 @@ SPAM_Sugb<-raster(paste0(filesMapSPAM[3]))
 SPAM_Sugc<-raster(paste0(filesMapSPAM[4]))
 SPAM_Whea<-raster(paste0(filesMapSPAM[5]))
 
-
-#coco and species richness amph
-makeBivmap(SR_Amphibians_50k,SPAM_Coco,10, "Species richness", "harvested area", "Birds", "Cocoa", "Species Richness Birds and harvested area of Cocoa")
-
+#example:
+makeBivmap(SR_all,SPAM_Coco,3, "Species richness", "Harvested Area", "Combined", "Cocoa", "Species Richness and Total Harvested Area of Cocoa",mapdir, AllArea = 0)
 
 
