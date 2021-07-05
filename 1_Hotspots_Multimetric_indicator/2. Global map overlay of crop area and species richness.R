@@ -128,7 +128,7 @@ SR_Mammals_50k<-readRDS(paste0(filesSR[2]))
 SR_Birds_50k<-readRDS(paste0(filesSR[3]))
 SR_Reptiles_50k<-readRDS(paste0(filesSR[4]))
 
-#Task 3 - add original projection to SR rasters####
+#Task 3a - add original projection to SR rasters####
 #data does not come with proj; Berhman proj added (original proj)
 
 #Berhman projection
@@ -143,7 +143,7 @@ Mamm <- writeRaster(SR_Mammals_50k, filename=file.path(SRdir, "man50k.tif"), for
 Bird <- writeRaster(SR_Birds_50k, filename=file.path(SRdir, "bid50k.tif"), format="GTiff", overwrite=TRUE)
 Rept <- writeRaster(SR_Reptiles_50k, filename=file.path(SRdir, "rep50k.tif"), format="GTiff", overwrite=TRUE)
 
-#Task 4 - import Mark's data####
+#Task 3b - import Mark's data####
 #for each crop and indicator
 
 files <- list.files(paste0(MMdir, "/Marks_Maps"), pattern = "_Total.tif", full.names = TRUE)
@@ -169,7 +169,27 @@ WD_sugarbeet <- mapWD_stack[[2]]
 WD_sugarcane <- mapWD_stack[[3]]
 WD_wheat <- mapWD_stack[[4]]
 
-##### Task 5 - create Bivariate Map function (with help from https://gist.github.com/scbrown86/2779137a9378df7b60afd23e0c45c188)#####
+# Task 3c - load MapSPAM ####
+
+#create list with all MapSPAM file names
+filesMapSPAM <- list.files(paste0(MapSPAM), pattern = "_A.tif", full.names = TRUE)
+
+#check names:
+filesMapSPAM
+#[1] "MapSPAM_Cookie/spam2010V2r0_global_H_COCO_A.tif"
+#[2] "MapSPAM_Cookie/spam2010V2r0_global_H_OILP_A.tif"
+#[3] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGB_A.tif"
+#[4] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGC_A.tif"
+#[5] "MapSPAM_Cookie/spam2010V2r0_global_H_WHEA_A.tif"
+
+#load in species richness data (credits: Adrienne)
+SPAM_Coco<-raster(paste0(filesMapSPAM[1]))
+SPAM_Oilp<-raster(paste0(filesMapSPAM[2]))
+SPAM_Sugb<-raster(paste0(filesMapSPAM[3]))
+SPAM_Sugc<-raster(paste0(filesMapSPAM[4]))
+SPAM_Whea<-raster(paste0(filesMapSPAM[5]))
+
+##### Task 4 - create Bivariate Map function (with help from https://gist.github.com/scbrown86/2779137a9378df7b60afd23e0c45c188)#####
 #function to create colour matrix
 colmat <- function(nquantiles = 3, upperleft = "#0096EB", upperright = "#820050", 
                    bottomleft = "#BEBEBE", bottomright = "#FFE60F",
@@ -328,7 +348,7 @@ bivariate.map <- function(rasterx, rastery, colormatrix = col.matrix,
   return(r)
 }
 
-# Task 8 - Automate the making of maps####
+# Task 5 - Automate the making of maps####
 #since this is made for SR maps from Adrienne; it is assumed that rasterX is always has the coarser and a Berhman projection
 #rasterX          - raster with coarser resolution
 #rasterY          - raster with finer resolution
@@ -338,12 +358,15 @@ bivariate.map <- function(rasterx, rastery, colormatrix = col.matrix,
 #rasterYSUBtitle  - e.g. "Wheat" (needs "" to work)
 #subtitle         - e.g. "Species Richness Birds and GHG Emission of Cocoa" (needs "" to work)
 #PATH             - e.g. SRdir (SRdir being a dir assigned to a object) or "/Users/Feli/Documents/Cookie Project" or which ever dir you want
-#outlierY - only added in case the rasterY data has an outlier (e.g. GHG_wheat has outliers above 2000 --> outlierY=2000)
-#AllArea = 1 - bivariate map fills all areas - including areas where data is only available from a single raster  
-#  "     ≠ 1 - bivariate map shows only areas where both datasets overlap
+#outlierY         - only added in case the rasterY data has an outlier (e.g. GHG_wheat has outliers above 2000 --> outlierY=2000)
+#AllArea = 1      - bivariate map fills all areas - including areas where data is only available from a single raster  
+#  "     ≠ 1      - bivariate map shows only areas where both datasets overlap
+#SaveMap = 1      - Maps will be saved as png
+#SaveMap ≠ 1      - Maps will not be saved and instead printed in plot window
+#save and print for SR map disabled (to avoid junk maps)
 
 makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, rasterXSUBtitle, 
-                      rasterYSUBtitle, subtitle, PATH, outlierY=0, AllArea = 1){
+                      rasterYSUBtitle, subtitle, PATH, outlierY=0, AllArea = 1, SaveMap = 1){
   #crop rasterX to match extend of rasterY
   b <- extent(-17372530, 17372470,  0.99*(-6357770), 0.99*(7347230))
   rasterX_crp <- crop(rasterX, b)
@@ -462,8 +485,7 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
           axis.text.y = element_text(angle = 90, hjust = 0.5),
           axis.text = element_text(size = 12, colour = "black"),
           axis.title = element_text(size = 12, colour = "black"))
-  
-  maprasterY1
+
   
   #for combined/patched map (rasterY)
   maprasterY2 <- ggplot(rasterY_df, aes(x = x, y = y))+
@@ -551,54 +573,39 @@ makeBivmap<- function(rasterX, rasterY, nBreaks, rasternameX, rasternameY, raste
   
   
   #save all plots | change if different label is preferred####
-  if (AllArea == 1) {
-    ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
-                              "Harv_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
-    ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
-                                   "Harv_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+  if (SaveMap == 1){
+    if (AllArea == 1) {
+      ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", deparse(substitute(rasterY)),
+                              "_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
+      ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", deparse(substitute(rasterY)),
+                                   "_PO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+    } else {
+      ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", deparse(substitute(rasterY)),
+                              "_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+      ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", deparse(substitute(rasterY)),
+                                   "_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
+    }
+    #enable ggsave for SR if needed
+    #ggsave(maprasterX1,filename=paste(rasterXSUBtitle, rasternameX, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
+    ggsave(maprasterY1,filename=paste(rasterYSUBtitle, rasternameY, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
   } else {
-    ggsave(fig,filename=paste("Biv",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
-                              "Harv_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
-    ggsave(combined,filename=paste("BivCombined",nBreaks,"Breaks","SR", rasterXSUBtitle, "_", rasterYSUBtitle,
-                                   "Harv_FO.png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH) 
-    
+    #enable print for SR if needed
+    #print(maprasterX1)
+    print(maprasterY1)
+    print(fig)
+    print(combined)
   }
-  ggsave(maprasterX1,filename=paste(rasterXSUBtitle, rasternameX, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
-  ggsave(maprasterY1,filename=paste(rasterYSUBtitle, rasternameY, ".png",sep=""),width = 50, height = 37.7038895859, units = "cm", path = PATH)
   
   
 }
 
+
 #
+
+#Task 6 - Make maps####
 #path/dir for saving maps: mapdir
 
 #example:
-makeBivmap(SR_Birds_50k,GHG_cocoa,10, "Species richness", "GHG emission", "Birds", "Cocoa","Species Richness Birds and GHG Emission of Cocoa",mapdir, outlierY = 3500, AllArea = 0)
-
-
-#
-
-# Task 9 - load MapSPAM & and make bivariate map with SR (as suggested by Abbie) 29/06/21 ####
-
-#create list with all MapSPAM file names
-filesMapSPAM <- list.files(paste0(MapSPAM), pattern = "_A.tif", full.names = TRUE)
-
-#check names:
-filesMapSPAM
-#[1] "MapSPAM_Cookie/spam2010V2r0_global_H_COCO_A.tif"
-#[2] "MapSPAM_Cookie/spam2010V2r0_global_H_OILP_A.tif"
-#[3] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGB_A.tif"
-#[4] "MapSPAM_Cookie/spam2010V2r0_global_H_SUGC_A.tif"
-#[5] "MapSPAM_Cookie/spam2010V2r0_global_H_WHEA_A.tif"
-
-#load in species richness data (credits: Adrienne)
-SPAM_Coco<-raster(paste0(filesMapSPAM[1]))
-SPAM_Oilp<-raster(paste0(filesMapSPAM[2]))
-SPAM_Sugb<-raster(paste0(filesMapSPAM[3]))
-SPAM_Sugc<-raster(paste0(filesMapSPAM[4]))
-SPAM_Whea<-raster(paste0(filesMapSPAM[5]))
-
-#example:
-makeBivmap(SR_all,SPAM_Coco,3, "Species richness", "Harvested Area", "Combined", "Cocoa", "Species Richness and Total Harvested Area of Cocoa",mapdir, AllArea = 0)
+makeBivmap(SR_all,GHG_wheat,10, "Species richness", "GHG emission", "Combined", "Wheat","Species Richness and GHG emmision of Wheat",mapdir, AllArea = 0, SaveMap = 1)
 
 
