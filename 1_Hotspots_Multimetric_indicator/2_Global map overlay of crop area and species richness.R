@@ -5,6 +5,7 @@
 #                                                          #
 ##%######################################################%##
 
+#the final function can create bivariate maps (species richness and any other Impact factor/Production Map)
 # started by Feli Pamatat, 16/06/2021
 
 #Prepare R for analysis####
