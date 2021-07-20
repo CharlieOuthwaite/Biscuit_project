@@ -1,10 +1,27 @@
 ##%######################################################%##
 #                                                          #
 #                    3. FAOSTAT Table                   ####
-#      produce top 50 crop producing countries & average   #
-#                   Biodiversity Impact                    #
+#      Produce a table incl. the top 50 crop producing     #
+#        countries & the average Biodiversity Impact       #
 #                                                          #
 ##%######################################################%##
+#this script produces:
+#1 table with the Production (in tonnes) for the Top50 countries (plus important Sugar trade partners; aka Top50+)
+#--> Top50Production
+#2 table Top50+ countries: Production plus Export (combined "Oil, palm" & "Oil, palm kernel" to "Oil palm fruit"; and "Sugar beet", "Sugar Raw Centrifugal"& "Sugar non-centrifugal" to "Sugar"
+#--> TopProductionTrade
+#3 table Top50+ countries: Production plus Export + Proportion of Export to UK
+#--> TopProductionTradeUK
+#4 table Top50+ countries:  Production plus Export + Proportion of Export to UK
+#                           + Sum of Impact (per Country) + Impact per Tonne + Impact of the Exported Crop to the Uk 
+#--> ImpactandTradeUK
+
+#FAOSTAT selection:
+#   FAOTableProduction  -     COUNTRIES - Select all; ELEMENTS - Production Quantity, Yield, Area harvested; ITEMS - Cocoa, beans, Oil palm fruit, Wheat, Sugar cane, Sugar beet
+#   FAOTableTrade       -     COUNTRIES - Select all; ELEMENTS - Export Quantity; ITEMS - Cocoa, beans/ Oil, palm/ Oil, palm kernel/ Wheat/ Sugar Raw centrifugal/Sugar non-centrifugal/ Sugar beet
+#   FAOTableTradeMatrix -     Reporter COUNTRIES - Select all; Partner COUNTRIES - United Kingdom of Great Britain and Northern Ireland; ELEMENTS - Export Quantity; ITEMS - Cocoa, beans/ Oil, palm/ Oil, palm kernel/ Wheat/ Sugar Raw centrifugal/Sugar non-centrifugal/ Sugar beet
+
+#Sugar Raw centrifugal/Sugar non-centrifugal - appear to be Sugar cane
 
 # started by Feli Pamatat, 05/07/2021
 
@@ -69,18 +86,35 @@ setwd("/Users/Feli/Documents/Cookie Project")
 #dir
 FAOdir <- "FAOSTAT_Table"
 
+#save in separate folder
+FAOsavedir <- "FAOSTAT_Table/FAOTable_2000"
+#FAOsavedir <- "FAOSTAT_Table/FAOTable_2010"
+
 
 #Task 2 - Load FAOSTAT table####
 #all data is from 2010 to match MapSPAM data
 
+#!!!!edit: 19/07/21: changed to 2000 
+#changed because we are now using EARTHSTAT (instead of MapSPAM) as Mark used that for his analysis 
+
+
 #Crops and livestock products - Trade data
-FAOTableTrade <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_Trade_2010_Crops_and_livestock_products.csv"))
+#2000:
+FAOTableTrade <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-20-2021_Trade_Crops_and_livestock_products_2000.csv"))
+#2010:
+#FAOTableTrade <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_Trade_Crops_and_livestock_products_2010.csv"))
 
 #Production Quantity
-FAOTableProduction <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_Production_Crops.csv"))
+#2000:
+FAOTableProduction <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-20-2021_Production_Crops_2000.csv"))
+#2010:
+#FAOTableProduction <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_Production_Crops_2010.csv"))
 
 #TradeMatrix
-FAOTableTradeMatrix <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_TradeMatrix.csv"))
+#2000:
+FAOTableTradeMatrix <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-20-2021_TradeMatrix_2000.csv"))
+#2010:
+#FAOTableTradeMatrix <- read_csv(paste0(FAOdir,"/FAOSTAT_data_7-5-2021_TradeMatrix_2010.csv"))
 
 
 # Task 3a - select top 50 crop producing countries####
@@ -129,7 +163,7 @@ unique(FAOTableTrade$Item)
 #so original does not get lost
 FAOTableTradeOrig <- FAOTableTrade
 
-#group crops (e.g. Oil, palm & Oil, palm kernel --> wheat)
+#group crops (e.g. Oil, palm & Oil, palm kernel --> "Oil palm fruit")
 FAOTableTrade$Item[FAOTableTrade$Item %in% c("Oil, palm", "Oil, palm kernel")] <- "Oil palm fruit"
 FAOTableTrade$Item[FAOTableTrade$Item %in% c("Sugar beet", "Sugar Raw Centrifugal", "Sugar non-centrifugal")] <- "Sugar"
 
@@ -163,7 +197,7 @@ unique(FAOTableTradeMatrix$Item)
 #so original does not get lost
 FAOTableTradeMatrixOrig <- FAOTableTradeMatrix
 
-#group crops (e.g. Oil, palm & Oil, palm kernel --> wheat)
+#group crops (e.g. Oil, palm & Oil, palm kernel --> "Oil palm fruit")
 FAOTableTradeMatrix$Item[FAOTableTradeMatrix$Item %in% c("Oil, palm", "Oil, palm kernel")] <- "Oil palm fruit"
 FAOTableTradeMatrix$Item[FAOTableTradeMatrix$Item %in% c("Sugar beet", "Sugar Raw Centrifugal")] <- "Sugar"
 
@@ -182,11 +216,11 @@ TopProductionTradeUK <- left_join(TopProductionTrade, FAOTableTradeMatrix, by = 
 
 
 # Task 4 - save as csv####
-#TopUKTrade   <- write_csv(TopProductionTradeUK, file.path(FAOdir, "TopUKTrade.csv"))
-#TopUKSugar   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Sugar",], file.path(FAOdir, "TopUKSugar.csv"))
-#TopUKWheat   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Wheat",], file.path(FAOdir, "TopUKWheat.csv"))
-#TopUKCocoa   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Cocoa, beans",], file.path(FAOdir, "TopUKCocoa.csv"))
-#TopUKOilPalm <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Oil palm fruit",], file.path(FAOdir, "TopUKOilPalm.csv"))
+#TopUKTrade   <- write_csv(TopProductionTradeUK, file.path(FAOsavedir, "TopUKTrade.csv"))
+#TopUKSugar   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Sugar",], file.path(FAOsavedir, "TopUKSugar.csv"))
+#TopUKWheat   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Wheat",], file.path(FAOsavedir, "TopUKWheat.csv"))
+#TopUKCocoa   <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Cocoa, beans",], file.path(FAOsavedir, "TopUKCocoa.csv"))
+#TopUKOilPalm <- write_csv(TopProductionTradeUK[TopProductionTradeUK$Item=="Oil palm fruit",], file.path(FAOsavedir, "TopUKOilPalm.csv"))
 
 
 # Task 5 - add Charlie's Summary stats
@@ -208,6 +242,18 @@ TopProductionTradeUK <- left_join(TopProductionTrade, FAOTableTradeMatrix, by = 
 #Viet Nam --> Vietnam
 
 #rename country names 
+#2000:
+#Timor-Leste is missing
+TopProductionTradeUK$Area[TopProductionTradeUK$Area %in% 
+                            c("Bolivia (Plurinational State of)","Congo","Czechia","Eswatini",
+                              "Iran (Islamic Republic of)","Russian Federation","Syrian Arab Republic",
+                              "United Kingdom of Great Britain and Northern Ireland",
+                              "United Republic of Tanzania","United States of America",
+                              "Venezuela (Bolivarian Republic of)","Viet Nam")] <- c("Bolivia","Republic of Congo","Czech Republic",
+                                                                                     "Swaziland","Iran","Russia","Syria",
+                                                                                     "United Kingdom","Tanzania","United States","Venezuela",
+                                                                                    "Vietnam")
+#2010: 
 TopProductionTradeUK$Area[TopProductionTradeUK$Area %in% 
                             c("Bolivia (Plurinational State of)","Congo","Czechia","Eswatini",
                               "Iran (Islamic Republic of)","Russian Federation","Syrian Arab Republic",
@@ -217,7 +263,6 @@ TopProductionTradeUK$Area[TopProductionTradeUK$Area %in%
                                                                                      "Swaziland","Iran","Russia","Syria","East Timor",
                                                                                      "United Kingdom","Tanzania","United States","Venezuela",
                                                                                      "Vietnam")
-
 #first need to rename Crops in TopProductionTradeUK
 TopProductionTradeUK$Item[TopProductionTradeUK$Item %in% "Cocoa, beans"] <- "Cocoa"
 TopProductionTradeUK$Item[TopProductionTradeUK$Item %in% "Oil palm fruit"] <- "OilPalm"
@@ -256,7 +301,6 @@ suppliers$Item[suppliers$Item %in% "Cocoa_beans"] <- "Cocoa"
 #change ImportToUK from %age to proportion
 suppliers$ImportToUK <- suppliers$ImportToUK/100
 
-####Start Charlie's Part####
 #### Task 1: Summary stats for each country ####
 
 # For now, will just use the total impact raster files
@@ -397,14 +441,15 @@ all_sums <- rbind(GHG_sums[, c(grep("sum", colnames(GHG_sums)))],
                   Pho_sums[, c(grep("sum", colnames(Pho_sums)))],
                   WAT_sums[, c(grep("sum", colnames(WAT_sums)))])
 
+#2000:
+all_sums$metric <-c(rep("GHG", 112), rep("LND", 112), rep("Nit", 112), rep("Pho", 112), rep("WAT", 112))
 
-all_sums$metric <-c(rep("GHG", 115), rep("LND", 115), rep("Nit", 115), rep("Pho", 115), rep("WAT", 115))
+#2010:
+#all_sums$metric <-c(rep("GHG", 115), rep("LND", 115), rep("Nit", 115), rep("Pho", 115), rep("WAT", 115))
 
 #View(all_sums)
 
 all_sums$Area <- sub("[0-9]+", "", rownames(all_sums))
-
-####End Charlie's Part####
 
 #all Crops combined into long format
 all_data1 <- all_sums[all_sums$metric=="GHG",] %>% gather(Item, GHG_metric, sum.Cocoa:sum.Wheat)
@@ -484,8 +529,21 @@ ImpactandTradeUK <- merge(ImpactandTradeUK, ImpactUK, by = c("Area","Item"))
 ## End - Save as CSV####
 
 #save as csv
-TopUKTradeImpact    <- write_csv(ImpactandTradeUK, file.path(FAOdir, "ImpactUKTrade.csv"))
-TopUKSugarImpact    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Sugar",], file.path(FAOdir, "ImpactUKSugar.csv"))
-TopUKWheatImpact    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Wheat",], file.path(FAOdir, "ImpactUKWheat.csv"))
-TopUKCocoaImpact    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Cocoa",], file.path(FAOdir, "ImpactUKCocoa.csv"))
-TopUKOilPalmImpact  <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="OilPalm",], file.path(FAOdir, "ImpactUKOilPalm.csv"))
+#2000:
+TopUKTradeImpact00    <- write_csv(ImpactandTradeUK, file.path(FAOsavedir, "ImpactUKTrade_2000.csv"))
+TopUKSugarImpact00    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Sugar",], file.path(FAOsavedir, "ImpactUKSugar_2000.csv"))
+TopUKWheatImpact00    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Wheat",], file.path(FAOsavedir, "ImpactUKWheat_2000.csv"))
+TopUKCocoaImpact00    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Cocoa",], file.path(FAOsavedir, "ImpactUKCocoa_2000.csv"))
+TopUKOilPalmImpact00  <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="OilPalm",], file.path(FAOsavedir, "ImpactUKOilPalm_2000.csv"))
+
+#2010:
+#TopUKTradeImpact2010    <- write_csv(ImpactandTradeUK, file.path(FAOsavedir, "ImpactUKTrade_2010.csv"))
+#TopUKSugarImpact2010    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Sugar",], file.path(FAOsavedir, "ImpactUKSugar_2010.csv"))
+#TopUKWheatImpact2010    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Wheat",], file.path(FAOsavedir, "ImpactUKWheat_2010.csv"))
+#TopUKCocoaImpact2010    <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="Cocoa",], file.path(FAOsavedir, "ImpactUKCocoa_2010.csv"))
+#TopUKOilPalmImpact2010  <- write_csv(ImpactandTradeUK[ImpactandTradeUK$Item=="OilPalm",], file.path(FAOsavedir, "ImpactUKOilPalm_2010.csv"))
+
+
+
+
+
