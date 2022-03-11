@@ -28,7 +28,7 @@ library(ggplot2)
 
 # set directories
 datadir <- "Data"
-outdir <- "1_Hotspots_Multimetric_indicator"
+outdir <- "1_Hotspots_Multimetric_indicator/"
 
 # take a look at the raster files
 list.files(paste0(datadir, "/Marks_Maps"), pattern = ".tif")
@@ -43,12 +43,14 @@ list.files(paste0(datadir, "/Marks_Maps"), pattern = ".tif")
 # Use Carole's list of key trade partners for our crops of interest for 2003 (I think)
 # this is saved in the Google drive 
 
+# **think this will be updated in the future**
+
 # read in Carole's list
 suppliers <- read.csv(paste0(datadir, "/UK_Suppliers_main_crops_Carole.csv"))
 
 #View(suppliers)
 
-# get a list of countries (note this does not include cocoa at the moment)
+# get a list of countries
 countries <- unique(suppliers$partner)
 
 length(countries) # currently 21 suppliers of interest
@@ -121,10 +123,27 @@ shapefile(ctry_shps, filename = paste0(outdir, "/Trade_partners_polygons.shp"))
 # load in the raster stack
 GHG <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
 
+# need to standardise to between 0 and 1, but across all values, not just per crop???
+
+cellStats(GHG, stat = "min")
+# GHG_Emissons_Total.1 GHG_Emissons_Total.2 GHG_Emissons_Total.3 GHG_Emissons_Total.4 GHG_Emissons_Total.5 
+# 0                    0                    0                    0                    0 
+
+cellStats(GHG, stat = "max")
+# GHG_Emissons_Total.1 GHG_Emissons_Total.2 GHG_Emissons_Total.3 GHG_Emissons_Total.4 GHG_Emissons_Total.5 
+# 21319.51            106966.16             12279.86            332213.59             58436.73
+
+max1 <- max(cellStats(GHG, stat = "max"))
+min1 <- 0
+
+
+GHG_RS <- ((GHG-min1)/(max1-min1))
+
+
 # use exact_extract function to get some summary stats per country/band
 # the function does the same for each layer automatically
 
-GHG_sums <- exact_extract(x = GHG, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+GHG_sums <- exact_extract(x = GHG_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(GHG_sums) <- ctry_shps$NAME_0
@@ -140,7 +159,24 @@ colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
 
 LND <- stack(paste0(datadir, "/Marks_Maps/", files[2]))
 
-LND_sums <- exact_extract(x = LND, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+# need to standardise to between 0 and 1, but across all values, not just per crop???
+
+cellStats(LND, stat = "min")
+# LD_BioDiv_Total.1 LD_BioDiv_Total.2 LD_BioDiv_Total.3 LD_BioDiv_Total.4 LD_BioDiv_Total.5 
+# 0                 0                 0                 0                 0
+
+cellStats(LND, stat = "max")
+# LD_BioDiv_Total.1 LD_BioDiv_Total.2 LD_BioDiv_Total.3 LD_BioDiv_Total.4 LD_BioDiv_Total.5 
+# 2.854524e-08      2.386932e-05      1.473781e-06      1.182444e-04      5.721687e-05
+
+max2 <- max(cellStats(LND, stat = "max"))
+min2 <- 0
+
+
+LND_RS <- ((LND-min2)/(max2-min2))
+
+
+LND_sums <- exact_extract(x = LND_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(LND_sums) <- ctry_shps$NAME_0
@@ -155,7 +191,24 @@ colnames(LND_sums) <- sub("LD_BioDiv_Total.5", "Wheat", colnames(LND_sums))
 
 Nit <- stack(paste0(datadir, "/Marks_Maps/", files[3]))
 
-Nit_sums <- exact_extract(x = Nit, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+# need to standardise to between 0 and 1, but across all values, not just per crop???
+
+cellStats(Nit, stat = "min")
+# N_Marine_BioDiv_Total.1 N_Marine_BioDiv_Total.2 N_Marine_BioDiv_Total.3 N_Marine_BioDiv_Total.4 
+# 0                       0                       0                       0                 0                    0                    0                    0 
+
+cellStats(Nit, stat = "max")
+# N_Marine_BioDiv_Total.1 N_Marine_BioDiv_Total.2 N_Marine_BioDiv_Total.3 N_Marine_BioDiv_Total.4 
+# 9.312263e-07            2.872260e-07            2.222444e-07            8.720011e-07 
+
+max3 <- max(cellStats(Nit, stat = "max"))
+min3 <- 0
+
+
+Nit_RS <- ((Nit-min3)/(max3-min3))
+
+
+Nit_sums <- exact_extract(x = Nit_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(Nit_sums) <- ctry_shps$NAME_0
@@ -171,7 +224,23 @@ Nit_sums$sum.Cocoa <- NA
 
 Pho <- stack(paste0(datadir, "/Marks_Maps/", files[4]))
 
-Pho_sums <- exact_extract(x = Pho, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+# need to standardise to between 0 and 1, but across all values, not just per crop???
+
+cellStats(Pho, stat = "min")
+# P_Marine_BioDiv_Total.1 P_Marine_BioDiv_Total.2 P_Marine_BioDiv_Total.3 P_Marine_BioDiv_Total.4 
+# 0                       0                       0                       0                     0                    0 
+
+cellStats(Pho, stat = "max")
+# P_Marine_BioDiv_Total.1 P_Marine_BioDiv_Total.2 P_Marine_BioDiv_Total.3 P_Marine_BioDiv_Total.4 
+# 8.588686e-07            3.745093e-05            2.162281e-03            2.375582e-04
+
+max4 <- max(cellStats(Pho, stat = "max"))
+min4 <- 0
+
+
+Pho_RS <- ((Pho-min4)/(max4-min4))
+
+Pho_sums <- exact_extract(x = Pho_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(Pho_sums) <- ctry_shps$NAME_0
@@ -187,7 +256,24 @@ Pho_sums$sum.Cocoa <- NA
 
 WAT <- stack(paste0(datadir, "/Marks_Maps/", files[5]))
 
-WAT_sums <- exact_extract(x = WAT, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+# need to standardise to between 0 and 1, but across all values, not just per crop???
+
+# Water_Debt_Total.1 Water_Debt_Total.2 Water_Debt_Total.3 Water_Debt_Total.4 
+# 2.779843e-11      -1.316293e+02      -4.723896e+03       0.000000e+00 
+
+cellStats(WAT, stat = "max")
+# Water_Debt_Total.1 Water_Debt_Total.2 Water_Debt_Total.3 Water_Debt_Total.4 
+# 11523.34          176487.58         1072299.38        80222504.00
+
+max5 <- max(cellStats(WAT, stat = "max"))
+min5 <- min(cellStats(WAT, stat = "min"))
+
+
+WAT_RS <- ((WAT-min5)/(max5-min5))
+
+
+
+WAT_sums <- exact_extract(x = WAT_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
 rownames(WAT_sums) <- ctry_shps$NAME_0
@@ -219,6 +305,20 @@ View(all_sums)
 
 all_sums$Country <- sub("[0-9]+", "", rownames(all_sums))
 
+# save data
+write.csv(all_sums, file = paste0(outdir, "Indicator_summaries_perCountry_tradepartners_RS.csv"))
+
+
+
+##%######################################################%##
+#                                                          #
+####                       plots                        ####
+#                                                          #
+##%######################################################%##
+
+
+#1. facet per metric, bar per country, bar split by crop
+
 
 # need to organise data into long format
 
@@ -249,7 +349,6 @@ ggplot(data = plot_data) +
   
 
 ggsave(filename = paste0(outdir, "/Plot_indicators_UK_partners.pdf"), width = 9, height = 6)
-
 
 
 
@@ -323,4 +422,44 @@ ggsave(filename = paste0(outdir, "/Wheat_indicators_major_partners.pdf"))
 
 
 
+##%######################################################%##
+#                                                          #
+####            bar charts for each country             ####
+#                                                          #
+##%######################################################%##
+
+# creating bar charts which show the values for each metric 
+# for each country. These are just for trade partners of the UK currently.
+# bar chart per country to be put on a map highlighting the areas harvested. 
+
+# still to do:
+# 1. need a way to standardise the metrics so they are comparable (set all
+# values at the global level to between 0 and 1?)
+# 2. try spliting the bars by crop if there is some crossover?
+# each country extracted metric data but not a top supplier
+
+# loop through each country and create a plot
+
+for(i in countries){
+  
+  # select the crop/crops of interest for this country
+  crop  <- suppliers[suppliers$partner == i, "item"]
+  
+  # subset the plotting data
+  plot_data2 <- plot_data[grep(i, plot_data$Country ), ]
+  
+
+  
+  
+plot_data2 <- plot_data[plot_data$Country == "United States" & plot_data$Crop == "Wheat", ]
+
+
+ggplot(plot_data2) +
+  geom_col(aes(x = Metric, y = Value), fill = c("#EEC900")) +  # wheat only for the US so selected a colour
+  xlab("") + 
+  ylab("Standardised indicator value") + 
+  theme_bw()
+
+
+}
 
