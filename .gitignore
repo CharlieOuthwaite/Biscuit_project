@@ -19,6 +19,7 @@
 
 # RStudio files
 .Rproj.user/
+Biscuit_project.Rproj
 
 # produced vignettes
 vignettes/*.html
@@ -31,9 +32,20 @@ vignettes/*.pdf
 *_cache/
 /cache/
 
+
+# ignore local data folders
+/Data
+
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
 
 # R Environment Variables
 .Renviron
+.Rproj.user
+
+#country files
+*_sp.rds
+
+# output folders
+1_Hotspots_Multimetric_indicator/
