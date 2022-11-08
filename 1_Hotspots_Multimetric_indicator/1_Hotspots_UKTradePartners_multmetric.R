@@ -168,10 +168,16 @@ ggplot() +
         panel.border = element_blank(),
         axis.title = element_blank(),
         axis.text = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank(),
+        panel.background = element_rect(fill = "transparent",
+                                        colour = NA_character_),
+        plot.background = element_rect(fill = "transparent",
+                                       colour = NA_character_), 
+        legend.background = element_rect(fill = "transparent",
+                                         colour = NA_character_))
 
 
-ggsave(filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc.png"), height = 4, width = 8, unit = "in")
+ggsave(filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc2.png"), height = 4, width = 8, unit = "in")
 
 
 #### get some summary stat for each country/indicator/crop combo ####
@@ -549,7 +555,7 @@ for(i in countries){
     ggtitle(i) +
     theme_bw() + 
     #ylim(0, 300) + 
-    scale_y_sqrt(limits = c(0,300), breaks = c(1, 5, 10, 25, 50, 100, 200, 300)) +
+    scale_y_sqrt(limits = c(0,300), breaks = c(1, 10, 50, 100, 200, 300)) +
     theme(legend.position = "none",
           #panel.background = element_blank(), 
           text = element_text(size = 10), 
@@ -590,7 +596,7 @@ for(i in countries){
       ylab("Index") + 
       ggtitle(i) +
       theme_bw() + 
-      scale_y_sqrt(limits = c(0,300), breaks = c(1, 5, 10, 25, 50, 100, 200, 300)) +
+      scale_y_sqrt(limits = c(0,300), breaks = c(1, 10, 50, 100, 200, 300)) +
       theme(legend.position = "none",
             #panel.background = element_blank(), 
             text = element_text(size = 10), 
