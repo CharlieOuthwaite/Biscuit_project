@@ -606,12 +606,6 @@ for(i in countries){
 }
 
 
-## create a nice looking world map with the country polygons to open in Inkscape and add bar plots to
-
-
-# NEXT:
-# match up colours across map and crop in barcharts. DONE
-
 # notes:
 # remember to note down when certain indicators don't cover some crops, e.g. cocoa has less. 
 
