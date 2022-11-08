@@ -548,9 +548,11 @@ for(i in countries){
     ylab("Index") + 
     ggtitle(i) +
     theme_bw() + 
+    #ylim(0, 300) + 
+    scale_y_sqrt(limits = c(0,300), breaks = c(1, 5, 10, 25, 50, 100, 200, 300)) +
     theme(legend.position = "none",
-          panel.background = element_blank(), 
-          text = element_text(size = 8), 
+          #panel.background = element_blank(), 
+          text = element_text(size = 10), 
           line = element_line(size = 0.5),
           legend.key.size = unit(0.6, 'cm'),
           # to add: legend background to white
@@ -558,7 +560,11 @@ for(i in countries){
           panel.border = element_rect(size = 0.2),
           axis.ticks = element_line(size = 0.2), 
           aspect.ratio = 1, 
-          axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+          axis.text.x = element_text(angle = 90, vjust = 0.5),
+          panel.background = element_rect(fill = "transparent",
+                                          colour = NA_character_),
+          plot.background = element_rect(fill = "transparent",
+                                         colour = NA_character_)) 
     # + 
     #guides(fill=guide_legend(nrow=2,byrow=TRUE))
   
@@ -584,16 +590,21 @@ for(i in countries){
       ylab("Index") + 
       ggtitle(i) +
       theme_bw() + 
+      scale_y_sqrt(limits = c(0,300), breaks = c(1, 5, 10, 25, 50, 100, 200, 300)) +
       theme(legend.position = "none",
-            panel.background = element_blank(), 
-            text = element_text(size = 8), 
+            #panel.background = element_blank(), 
+            text = element_text(size = 10), 
             line = element_line(size = 0.5),
             legend.key.size = unit(0.6, 'cm'),
             panel.grid = element_blank(),
             panel.border = element_rect(size = 0.2),
             axis.ticks = element_line(size = 0.2), 
             aspect.ratio = 1, 
-            axis.text.x = element_text(angle = 90, vjust = 0.5)) 
+            axis.text.x = element_text(angle = 90, vjust = 0.5),
+            panel.background = element_rect(fill = "transparent",
+                                            colour = NA_character_),
+            plot.background = element_rect(fill = "transparent",
+                                           colour = NA_character_)) 
 
     
     
