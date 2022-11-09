@@ -157,11 +157,11 @@ load(file = paste0(outdir, "Trade_partners_DF_Kaster_5perc_pluscrop.rdata"))
 # base map - country outlines with coloured polygons for those countries of interest
 world <- map_data("world")
 
-ggplot() +
+p1 <- ggplot() +
   geom_map(
     data = world, map = world,
-    aes(long, lat, map_id = region), fill = "white", col = "lightgrey") +
-  geom_polygon(data = ctry_shps.df, aes(fill = Crops, x = long, y = lat, group = group), alpha = 0.6) +
+    aes(long, lat, map_id = region), fill = "transparent", col = "black") +
+  geom_polygon(data = ctry_shps.df, aes(fill = Crops, x = long, y = lat, group = group), alpha = 0.8) +
   scale_fill_manual(values = c("#8B4500", "#6E8B3D", "#8B8878", "#EEB422")) +
   theme_bw() + 
   theme(panel.grid = element_blank(), 
@@ -177,7 +177,7 @@ ggplot() +
                                          colour = NA_character_))
 
 
-ggsave(filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc2.png"), height = 4, width = 8, unit = "in")
+ggsave(p1, filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc2.png"), height = 4, width = 8, unit = "in")
 
 
 #### get some summary stat for each country/indicator/crop combo ####
