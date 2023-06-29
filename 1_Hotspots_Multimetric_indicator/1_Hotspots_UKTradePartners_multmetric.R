@@ -28,6 +28,7 @@ library(exactextractr) # exact_extract function from here
 library(ggplot2)
 library(plyr)
 library(sf)
+library(dplyr)
 
 
 # set directories
@@ -427,11 +428,7 @@ write.csv(plot_data, paste0(outdir, "Plot_data_country_barplots_FIG2.csv"), row.
 # for each country. These are just for trade partners of the UK currently.
 # bar chart per country to be put on a map highlighting the areas harvested. 
 
-# ** need to update countries list and recreate plots **
-
 # loop through each country and create a plot
-
-## new country list - supplied by Abbie (Kastner data)
 
 
 plot_data <- read.csv( paste0(outdir, "Plot_data_country_barplots_FIG2.csv"))
@@ -441,18 +438,32 @@ plot_data$Crop <- tolower(plot_data$Crop)
 plot_data$Crop[plot_data$Crop == "sugarbeet"] <- "sugar"
 plot_data$Crop[plot_data$Crop == "sugarcane"] <- "sugar"
 
+suppliers$crop[suppliers$crop == "sugarbeet"] <- "sugar"
+suppliers$crop[suppliers$crop == "sugarcane"] <- "sugar"
 
-# i <- countries[13]
+suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
+suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
+suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
+
+countries <- suppliers$partner
+  
+# i <- countries[8]
+
 
 for(i in countries){
 
   # select the crop/crops of interest for this country
-  crops  <- suppliers[suppliers$Trade_Partner == i, "crop"]
+  crops  <- suppliers[suppliers$partner == i, "crop"]
   
   # subset the plotting data
-  plot_data2 <- plot_data[grep(i, plot_data$Country ), ]
+  plot_data2 <- plot_data[grep(gsub("\\.", " ", i), plot_data$Country ), ]
   plot_data2 <- plot_data2[plot_data2$Crop %in% tolower(crops), ]
   
+  if(length(grep("GHG", plot_data2$Metric)) > 1){
+    
+    plot_data2 <- plot_data2 %>% group_by(Metric) %>%
+      summarise(Value=sum(Value), Country = unique(Country), Crop = unique(Crop))
+  }
   
   # use a certain colour depending on the crop of interest
   # colour selections used above look quite nice.
@@ -467,10 +478,10 @@ for(i in countries){
     geom_col(aes(x = Metric, y = Value), fill = cols) +  
     xlab("") + 
     ylab("Index") + 
-    ggtitle(i) +
+    ggtitle(gsub("\\.", " ", i)) +
     theme_bw() + 
     #ylim(0, 300) + 
-    scale_y_sqrt(limits = c(0,300), breaks = c(1, 10, 50, 100, 200, 300)) +
+    scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
     theme(legend.position = "none",
           #panel.background = element_blank(), 
           text = element_text(size = 10), 
@@ -502,16 +513,17 @@ for(i in countries){
     
    cols <- cols_tab[cols_tab$crop %in% crops, "cols"]
    
-   plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugarcane", "sugarbeet", "cocoa", "oilpalm", "wheat"))
-    
+  # plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugarcane", "sugarbeet", "cocoa", "oilpalm", "wheat"))
+   plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugar", "cocoa", "oilpalm", "wheat"))
+   
     ggplot(plot_data2) +
       geom_col(aes(x = Metric, y = Value, fill = Crop), position = "stack") + 
       scale_fill_manual(values = cols) +
       xlab("") + 
       ylab("Index") + 
-      ggtitle(i) +
+      ggtitle(gsub("\\.", " ", i)) +
       theme_bw() + 
-      scale_y_sqrt(limits = c(0,300), breaks = c(1, 10, 50, 100, 200, 300)) +
+      scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
       theme(legend.position = "none",
             #panel.background = element_blank(), 
             text = element_text(size = 10), 
@@ -543,3 +555,33 @@ for(i in countries){
 
 
 
+#### stacked barchart ####
+
+plot_data <- read.csv( paste0(outdir, "Plot_data_country_barplots_FIG2.csv"))
+
+plot_data$Crop <- tolower(plot_data$Crop)
+
+plot_data$Crop[plot_data$Crop == "sugarbeet"] <- "sugar"
+plot_data$Crop[plot_data$Crop == "sugarcane"] <- "sugar"
+
+suppliers$crop[suppliers$crop == "sugarbeet"] <- "sugar"
+suppliers$crop[suppliers$crop == "sugarcane"] <- "sugar"
+
+suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
+suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
+suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
+suppliers$partner[suppliers$partner == "United.Kingdom"] <- "United Kingdom"
+suppliers$partner[suppliers$partner == "El.Salvador"] <- "El Salvador"
+
+plot_data2 <- left_join(suppliers, plot_data, by=c('partner'='Country', 'crop'='Crop'))
+
+plot_data2$Country_crop <- paste(plot_data2$partner, "-\n",  plot_data2$crop)
+
+ggplot(plot_data2, aes(fill=Metric, y=Country_crop, x=Value)) + 
+  geom_bar(position="stack", stat="identity") + 
+  scale_fill_manual(values = c("#8B668B",   "#838B8B", "#CD8C95", "#4F94CD", "#8B0000")) + 
+  xlab("Total standardised impact across indicators") + 
+  theme_bw() +
+  theme(axis.title.y = element_blank())
+
+ggsave(filename = paste0(outdir, "Figure2_stackedbarplot_suppliers_impact.pdf"))
