@@ -36,7 +36,7 @@ datadir <- "Data"
 outdir <- "1_Hotspots_Multimetric_indicator/"
 
 # take a look at the raster files
-list.files(paste0(datadir, "/Marks_Maps"), pattern = ".tif")
+list.files(paste0(datadir, "/Indicator_Maps"), pattern = ".tif")
 
 # Notes from Mark's readme doc
 # Files ending with:
@@ -45,23 +45,23 @@ list.files(paste0(datadir, "/Marks_Maps"), pattern = ".tif")
 
 
 # which countries are we interested in?
-## updated suppliers list, processes by Abbie, producers of 5% or more of UK imports
-# 25/05/2023 Abbie update the file - use one named supplying_at_least_5_percent_2019_updated.csv
-suppliers <- read.csv(paste0(datadir, "/supplying_at_least_5_percent_2019_updated.csv"))
+## updated suppliers list, processed by Abbie, producers of 5% or more of UK imports
+# Sept 2023, list appended _NEW
+suppliers <- read.csv(paste0(datadir, "/top_countries_5_percent_NEW.csv"))
 
 View(suppliers)
 
 # get a list of countries
 countries <- unique(suppliers$partner)
 
-length(countries) # currently 11 suppliers of interest for 2019 at 5%
+length(countries) # currently 7 suppliers of interest for 2019 at 5%
 
 
 #### Task 1: Summary stats for each country ####
 
-# For now, will just use the total impact raster files
+# For now, will use the total impact raster files
 
-files <- list.files(paste0(datadir, "/Marks_Maps"), pattern = "_Total.tif")
+files <- list.files(paste0(datadir, "/Indicator_Maps"), pattern = "_Total.tif")
 
 # 5 files
 # "GHG_Emissons_Total.tif"
@@ -86,10 +86,10 @@ View(getData('ISO3'))
 codes <- getData('ISO3')
 
 # reorganise country names
-countries <- gsub("\\.", " ", countries)
-countries <- sub(" of America", "", countries)
-countries <- sub("Viet Nam", "Vietnam", countries)
-countries <- sub("Cote d Ivoire", "Côte d'Ivoire", countries)
+#countries <- gsub("\\.", " ", countries)
+# countries <- sub(" of America", "", countries)
+# countries <- sub("Viet Nam", "Vietnam", countries)
+#countries <- sub("Cote d Ivoire", "Côte d'Ivoire", countries)
 
 
 # some names do not match so added in manually
@@ -102,8 +102,6 @@ codes$countries <- cntry_codes$ISO3
 # download and combine polygons into one object
 ctry_shps = do.call("bind", lapply(codes$countries, 
                                    function(x) getData('GADM', country=x, level=0)))
-
-# this takes a little while to download all the polygons
 
 # take a little look
 plot(ctry_shps)
@@ -130,62 +128,64 @@ crps <- suppliers
 # crps <- unique(crps)
 
 # testing alternative to relabelling based on multiple crops, try overlaying
-ctry_shps <- rbind(ctry_shps, ctry_shps[9,])
+ctry_shps <- rbind(ctry_shps, ctry_shps[7,]) # 7 is the UK
 
 # add into to polygons, note replicated country added onto the end
-ctry_shps$Crops <- crps$crop[c(2, 9, 6, 10, 5, 11, 12, 3, 1, 8, 7, 4)]
+ctry_shps$Crops <- crps$crop[c(5, 2, 3, 7, 8, 4, 1, 6)]
+# check data correctly matched
+ctry_shps@data
 
-#### create a base map for Figure 2 ####
-# This needs to be a world outline with the countries of interest coloured by crop
-
-# think I found these lines of code via google
-ctry_shps@data$id = rownames(ctry_shps@data)
-ctry_shps.points = fortify(ctry_shps, region="id") # this takes a while
-ctry_shps.df = join(ctry_shps.points, ctry_shps@data, by="id")
-
-# save dataframe for ggplot
-save(ctry_shps.df, file = paste0(outdir, "Trade_partners_DF_Kaster_5perc_pluscrop_2019.rdata"))
-
-# save this polygons object for future use
-#shapefile(ctry_shps, filename = paste0(outdir, "/Trade_partners_polygons_Kaster_5perc_pluscrop_2019.shp"))
-
-# load in shapefile
-#ctry_shps <- shapefile(paste0(outdir, "/Trade_partners_polygons_Kaster_5perc_pluscrop_2019.shp"))
-#load(file = paste0(outdir, "Trade_partners_DF_Kaster_5perc_pluscrop_2019.rdata"))
-
-# base map - country outlines with coloured polygons for those countries of interest
-world <- map_data("world")
-
-# replace sugarcane and sugarbeet with sugar
-ctry_shps.df$Crops[ctry_shps.df$Crops %in% c("sugarbeet", "sugarcane")] <- "sugar"
-
-ctry_shps.df$Crops <- as.factor(ctry_shps.df$Crops)
-levels(ctry_shps.df$Crops)
-ctry_shps.df$Crops <- factor(ctry_shps.df$Crops, levels = c("oilpalm", "sugar", "wheat", "cocoa"))
-levels(ctry_shps.df$Crops)
-
-p1 <- ggplot() +
-  geom_map(
-    data = world, map = world,
-    aes(long, lat, map_id = region), fill = "transparent", col = "darkgrey") +
-  geom_polygon(data = ctry_shps.df, aes(fill = Crops, x = long, y = lat, group = group), alpha = 0.6) +
-  scale_fill_manual(values = c("#A9C975", "#8B8878", "#EEB422","#8B3E2F")) + # green, grey, yellow, brown
-  scale_y_continuous(limits=c(-55,90)) +
-  theme_bw() + 
-  theme(panel.grid = element_blank(), 
-        panel.border = element_blank(),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.background = element_rect(fill = "transparent",
-                                        colour = NA_character_),
-        plot.background = element_rect(fill = "transparent",
-                                       colour = NA_character_), 
-        legend.background = element_rect(fill = "transparent",
-                                         colour = NA_character_), 
-        legend.position = "bottom")
-
-ggsave(p1, filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc2.png"), height = 4, width = 8, unit = "in")
+# #### create a base map for Figure 2 ####
+# # This needs to be a world outline with the countries of interest coloured by crop
+# 
+# # think I found these lines of code via google
+# ctry_shps@data$id = rownames(ctry_shps@data)
+# ctry_shps.points = fortify(ctry_shps, region="id") # this takes a while
+# ctry_shps.df = join(ctry_shps.points, ctry_shps@data, by="id")
+# 
+# # save dataframe for ggplot
+# save(ctry_shps.df, file = paste0(outdir, "Trade_partners_DF_Kaster_5perc_pluscrop_2019.rdata"))
+# 
+# # save this polygons object for future use
+# #shapefile(ctry_shps, filename = paste0(outdir, "/Trade_partners_polygons_Kaster_5perc_pluscrop_2019.shp"))
+# 
+# # load in shapefile
+# #ctry_shps <- shapefile(paste0(outdir, "/Trade_partners_polygons_Kaster_5perc_pluscrop_2019.shp"))
+# #load(file = paste0(outdir, "Trade_partners_DF_Kaster_5perc_pluscrop_2019.rdata"))
+# 
+# # base map - country outlines with coloured polygons for those countries of interest
+# world <- map_data("world")
+# 
+# # replace sugarcane and sugarbeet with sugar
+# ctry_shps.df$Crops[ctry_shps.df$Crops %in% c("sugarbeet", "sugarcane")] <- "sugar"
+# 
+# ctry_shps.df$Crops <- as.factor(ctry_shps.df$Crops)
+# levels(ctry_shps.df$Crops)
+# ctry_shps.df$Crops <- factor(ctry_shps.df$Crops, levels = c("oilpalm", "sugar", "wheat", "cocoa"))
+# levels(ctry_shps.df$Crops)
+# 
+# p1 <- ggplot() +
+#   geom_map(
+#     data = world, map = world,
+#     aes(long, lat, map_id = region), fill = "transparent", col = "darkgrey") +
+#   geom_polygon(data = ctry_shps.df, aes(fill = Crops, x = long, y = lat, group = group), alpha = 0.6) +
+#   scale_fill_manual(values = c("#A9C975", "#8B8878", "#EEB422","#8B3E2F")) + # green, grey, yellow, brown
+#   scale_y_continuous(limits=c(-55,90)) +
+#   theme_bw() + 
+#   theme(panel.grid = element_blank(), 
+#         panel.border = element_blank(),
+#         axis.title = element_blank(),
+#         axis.text = element_blank(),
+#         axis.ticks = element_blank(),
+#         panel.background = element_rect(fill = "transparent",
+#                                         colour = NA_character_),
+#         plot.background = element_rect(fill = "transparent",
+#                                        colour = NA_character_), 
+#         legend.background = element_rect(fill = "transparent",
+#                                          colour = NA_character_), 
+#         legend.position = "bottom")
+# 
+# ggsave(p1, filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5perc2.png"), height = 4, width = 8, unit = "in")
 
 ##%######################################################%##
 #                                                          #
@@ -194,17 +194,10 @@ ggsave(p1, filename = paste0(outdir, "FIGURE_2_Basemap_inc_country_polygons_5per
 #                                                          #
 ##%######################################################%##
 
-# thinking... which stats will be useful
-# mean across cells
-# range 
-# sd
-
-# what other summaries would be good?
-
 #### 1. GHG Total indicator map ####
 
 # load in the raster stack
-GHG <- stack(paste0(datadir, "/Marks_Maps/", files[1]))
+GHG <- stack(paste0(datadir, "/Indicator_Maps/", files[1]))
 
 # need to standardise to between 0 and 1, but across all values, not just per crop
 
@@ -226,10 +219,10 @@ GHG_RS <- ((GHG-min1)/(max1-min1))
 # use exact_extract function to get some summary stats per country/band
 # the function does the same for each layer automatically
 
-GHG_sums <- exact_extract(x = GHG_RS, y = ctry_shps[1:11,], fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+GHG_sums <- exact_extract(x = GHG_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
-rownames(GHG_sums) <- ctry_shps$NAME_0[1:11]
+GHG_sums$partner <- ctry_shps$NAME_0
 
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.1", "Cocoa", colnames(GHG_sums))
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.2", "Oilpalm", colnames(GHG_sums))
@@ -237,10 +230,12 @@ colnames(GHG_sums) <- sub("GHG_Emissons_Total.3", "SugarBeet", colnames(GHG_sums
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.4", "SugarCane", colnames(GHG_sums))
 colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
 
+write.csv(GHG_sums, paste0(outdir, "GHG_summaries_allcrops.csv"), row.names = F)
+
 
 #### 2. Land biodiversity impact ####
 
-LND <- stack(paste0(datadir, "/Marks_Maps/", files[2]))
+LND <- stack(paste0(datadir, "/Indicator_Maps/", files[2]))
 
 # need to standardise to between 0 and 1, but across all values, not just per crop???
 
@@ -259,10 +254,10 @@ min2 <- 0
 LND_RS <- ((LND-min2)/(max2-min2))
 
 
-LND_sums <- exact_extract(x = LND_RS, y = ctry_shps[1:11,], fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+LND_sums <- exact_extract(x = LND_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
-rownames(LND_sums) <- ctry_shps$NAME_0[1:11]
+LND_sums$partner <- ctry_shps$NAME_0
 
 colnames(LND_sums) <- sub("LD_BioDiv_Total.1", "Cocoa", colnames(LND_sums))
 colnames(LND_sums) <- sub("LD_BioDiv_Total.2", "Oilpalm", colnames(LND_sums))
@@ -270,9 +265,11 @@ colnames(LND_sums) <- sub("LD_BioDiv_Total.3", "SugarBeet", colnames(LND_sums))
 colnames(LND_sums) <- sub("LD_BioDiv_Total.4", "SugarCane", colnames(LND_sums))
 colnames(LND_sums) <- sub("LD_BioDiv_Total.5", "Wheat", colnames(LND_sums))
 
+write.csv(LND_sums, paste0(outdir, "LND_summaries_allcrops.csv"), row.names = F)
+
 #### 3. N biodiv impact ####
 
-Nit <- stack(paste0(datadir, "/Marks_Maps/", files[3]))
+Nit <- stack(paste0(datadir, "/Indicator_Maps/", files[3]))
 
 # need to standardise to between 0 and 1, but across all values, not just per crop???
 
@@ -291,10 +288,10 @@ min3 <- 0
 Nit_RS <- ((Nit-min3)/(max3-min3))
 
 
-Nit_sums <- exact_extract(x = Nit_RS, y = ctry_shps[1:11,], fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+Nit_sums <- exact_extract(x = Nit_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
-rownames(Nit_sums) <- ctry_shps$NAME_0[1:11]
+Nit_sums$partner <- ctry_shps$NAME_0
 
 colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.1", "Oilpalm", colnames(Nit_sums))
 colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.2", "SugarBeet", colnames(Nit_sums))
@@ -303,9 +300,12 @@ colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.4", "Wheat", colnames(Nit_sums)
 
 Nit_sums$sum.Cocoa <- NA
 
+write.csv(Nit_sums, paste0(outdir, "Nit_summaries_allcrops.csv"), row.names = F)
+
+
 #### 4. P biodiv impact ####
 
-Pho <- stack(paste0(datadir, "/Marks_Maps/", files[4]))
+Pho <- stack(paste0(datadir, "/Indicator_Maps/", files[4]))
 
 # need to standardise to between 0 and 1, but across all values, not just per crop???
 
@@ -323,10 +323,10 @@ min4 <- 0
 
 Pho_RS <- ((Pho-min4)/(max4-min4))
 
-Pho_sums <- exact_extract(x = Pho_RS, y = ctry_shps[1:11,], fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+Pho_sums <- exact_extract(x = Pho_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
-rownames(Pho_sums) <- ctry_shps$NAME_0[1:11]
+Pho_sums$partner <- ctry_shps$NAME_0
 
 colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.1", "Oilpalm", colnames(Pho_sums))
 colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.2", "SugarBeet", colnames(Pho_sums))
@@ -335,9 +335,11 @@ colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.4", "Wheat", colnames(Pho_sums)
 
 Pho_sums$sum.Cocoa <- NA
 
+write.csv(Pho_sums, paste0(outdir, "Pho_summaries_allcrops.csv"), row.names = F)
+
 #### 5. water debt ####
 
-WAT <- stack(paste0(datadir, "/Marks_Maps/", files[5]))
+WAT <- stack(paste0(datadir, "/Indicator_Maps/", files[5]))
 
 # need to standardise to between 0 and 1, but across all values, not just per crop???
 
@@ -356,10 +358,10 @@ WAT_RS <- ((WAT-min5)/(max5-min5))
 
 
 
-WAT_sums <- exact_extract(x = WAT_RS, y = ctry_shps[1:11,], fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
+WAT_sums <- exact_extract(x = WAT_RS, y = ctry_shps, fun = c('sum', 'mean', 'min', 'max', 'median', 'stdev'))
 
 # need to organise the outputted info
-rownames(WAT_sums) <- ctry_shps$NAME_0[1:11]
+WAT_sums$partner <- ctry_shps$NAME_0
 
 colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Oilpalm", colnames(WAT_sums))
 colnames(WAT_sums) <- sub("Water_Debt_Total.2", "SugarBeet", colnames(WAT_sums))
@@ -369,6 +371,10 @@ colnames(WAT_sums) <- sub("Water_Debt_Total.4", "Wheat", colnames(WAT_sums))
 WAT_sums$sum.Cocoa <- NA
 
 
+write.csv(WAT_sums, paste0(outdir, "WAT_summaries_allcrops.csv"), row.names = F)
+
+
+# organise all the summed values
 all_sums <- rbind(GHG_sums[, c(grep("sum", colnames(GHG_sums)))],
                   LND_sums[, c(grep("sum", colnames(LND_sums)))],
                   Nit_sums[, c(grep("sum", colnames(Nit_sums)))],
@@ -376,11 +382,14 @@ all_sums <- rbind(GHG_sums[, c(grep("sum", colnames(GHG_sums)))],
                   WAT_sums[, c(grep("sum", colnames(WAT_sums)))])
 
 
-all_sums$metric <- c(rep("GHG", 11), rep("LND", 11), rep("Nit", 11), rep("Pho", 11), rep("WAT", 11))
+# add in metric info
+all_sums$metric <- c(rep("GHG", 8), rep("LND", 8), rep("Nit", 8), rep("Pho", 8), rep("WAT", 8))
 
+# add in country names
+all_sums$Country <- rep(GHG_sums$partner, 5)
+
+# take a look
 View(all_sums)
-
-all_sums$Country <- sub("[0-9]+", "", rownames(all_sums))
 
 # save data
 write.csv(all_sums, file = paste0(outdir, "Indicator_summaries_perCountry_tradepartners_5perc_2019.csv"))
@@ -399,7 +408,7 @@ write.csv(all_sums, file = paste0(outdir, "Indicator_summaries_perCountry_tradep
 
 # need to organise data into long format
 
-plot_data <- matrix(nrow = 275, ncol = 4)
+plot_data <- matrix(nrow = 200, ncol = 4)
 
 plot_data[, 1] <- c(all_sums[, 1], all_sums[, 2], all_sums[, 3], all_sums[, 4], all_sums[, 5])
 
@@ -407,7 +416,7 @@ plot_data[, 2] <- rep(all_sums$metric, 5)
 
 plot_data[, 3] <- rep(all_sums$Country, 5)
 
-plot_data[, 4] <- c(rep("Cocoa", 55), rep("OilPalm", 55), rep("SugarBeet", 55), rep("SugarCane", 55), rep("Wheat", 55))
+plot_data[, 4] <- c(rep("Cocoa", nrow(all_sums)), rep("OilPalm", nrow(all_sums)), rep("SugarBeet", nrow(all_sums)), rep("SugarCane", nrow(all_sums)), rep("Wheat", nrow(all_sums)))
 
 colnames(plot_data) <- c("Value", "Metric", "Country", "Crop")
 
@@ -429,133 +438,136 @@ write.csv(plot_data, paste0(outdir, "Plot_data_country_barplots_FIG2.csv"), row.
 # bar chart per country to be put on a map highlighting the areas harvested. 
 
 # loop through each country and create a plot
-
-
-plot_data <- read.csv( paste0(outdir, "Plot_data_country_barplots_FIG2.csv"))
-
-plot_data$Crop <- tolower(plot_data$Crop)
-
-plot_data$Crop[plot_data$Crop == "sugarbeet"] <- "sugar"
-plot_data$Crop[plot_data$Crop == "sugarcane"] <- "sugar"
-
-suppliers$crop[suppliers$crop == "sugarbeet"] <- "sugar"
-suppliers$crop[suppliers$crop == "sugarcane"] <- "sugar"
-
-suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
-suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
-suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
-
-countries <- suppliers$partner
-  
-# i <- countries[8]
-
-
-for(i in countries){
-
-  # select the crop/crops of interest for this country
-  crops  <- suppliers[suppliers$partner == i, "crop"]
-  
-  # subset the plotting data
-  plot_data2 <- plot_data[grep(gsub("\\.", " ", i), plot_data$Country ), ]
-  plot_data2 <- plot_data2[plot_data2$Crop %in% tolower(crops), ]
-  
-  if(length(grep("GHG", plot_data2$Metric)) > 1){
-    
-    plot_data2 <- plot_data2 %>% group_by(Metric) %>%
-      summarise(Value=sum(Value), Country = unique(Country), Crop = unique(Crop))
-  }
-  
-  # use a certain colour depending on the crop of interest
-  # colour selections used above look quite nice.
-  if(length(crops) == 1){
-    
-    if(crops == "sugar") cols <- c("#8B8878")
-    if(crops == "cocoa") cols <- c("#8B4500")
-    if(crops == "oilpalm") cols <- c("#6E8B3D")
-    if(crops == "wheat") cols <- c("#EEB422")
-    
-  ggplot(plot_data2) +
-    geom_col(aes(x = Metric, y = Value), fill = cols) +  
-    xlab("") + 
-    ylab("Index") + 
-    ggtitle(gsub("\\.", " ", i)) +
-    theme_bw() + 
-    #ylim(0, 300) + 
-    scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
-    theme(legend.position = "none",
-          #panel.background = element_blank(), 
-          text = element_text(size = 10), 
-          line = element_line(size = 0.5),
-          legend.key.size = unit(0.6, 'cm'),
-          # to add: legend background to white
-          panel.grid = element_blank(),
-          panel.border = element_rect(size = 0.2),
-          axis.ticks = element_line(size = 0.2), 
-          aspect.ratio = 1, 
-          axis.text.x = element_text(angle = 90, vjust = 0.5),
-          panel.background = element_rect(fill = "transparent",
-                                          colour = NA_character_),
-          plot.background = element_rect(fill = "transparent",
-                                         colour = NA_character_)) 
-    # + 
-    #guides(fill=guide_legend(nrow=2,byrow=TRUE))
-  
-  
-  # save the plots in a subfolder for use in Inkscape 
-  ggsave(filename = paste0(outdir, "/barplots/Barplot_Indicators_forMap_", i, ".png"), width = 2, height = 2, units = "in")
-  
-  }else{
-    
-
-    cols_tab <- data.frame(crop = c("sugar", "cocoa", "oilpalm", "wheat"),
-                           cols = c("#8B8878", "#8B4500", "#6E8B3D", "#EEB422"))
-    
-    
-   cols <- cols_tab[cols_tab$crop %in% crops, "cols"]
-   
-  # plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugarcane", "sugarbeet", "cocoa", "oilpalm", "wheat"))
-   plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugar", "cocoa", "oilpalm", "wheat"))
-   
-    ggplot(plot_data2) +
-      geom_col(aes(x = Metric, y = Value, fill = Crop), position = "stack") + 
-      scale_fill_manual(values = cols) +
-      xlab("") + 
-      ylab("Index") + 
-      ggtitle(gsub("\\.", " ", i)) +
-      theme_bw() + 
-      scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
-      theme(legend.position = "none",
-            #panel.background = element_blank(), 
-            text = element_text(size = 10), 
-            line = element_line(size = 0.5),
-            legend.key.size = unit(0.6, 'cm'),
-            panel.grid = element_blank(),
-            panel.border = element_rect(size = 0.2),
-            axis.ticks = element_line(size = 0.2), 
-            aspect.ratio = 1, 
-            axis.text.x = element_text(angle = 90, vjust = 0.5),
-            panel.background = element_rect(fill = "transparent",
-                                            colour = NA_character_),
-            plot.background = element_rect(fill = "transparent",
-                                           colour = NA_character_)) 
-
-    
-    
-    # save the plots in a subfolder for use in Inkscape 
-    ggsave(filename = paste0(outdir, "/barplots/Barplot_Indicators_forMap_", i, ".png"), width = 2, height = 2, units = "in")
-    
-    
-  }
-
-}
-
+# 
+# 
+# plot_data <- read.csv( paste0(outdir, "Plot_data_country_barplots_FIG2.csv"))
+# 
+# plot_data$Crop <- tolower(plot_data$Crop)
+# 
+# plot_data$Crop[plot_data$Crop == "sugarbeet"] <- "sugar"
+# plot_data$Crop[plot_data$Crop == "sugarcane"] <- "sugar"
+# 
+# suppliers$crop[suppliers$crop == "sugarbeet"] <- "sugar"
+# suppliers$crop[suppliers$crop == "sugarcane"] <- "sugar"
+# 
+# suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
+# suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
+# suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
+# 
+# countries <- suppliers$partner
+#   
+# # i <- countries[8]
+# 
+# 
+# for(i in countries){
+# 
+#   # select the crop/crops of interest for this country
+#   crops  <- suppliers[suppliers$partner == i, "crop"]
+#   
+#   # subset the plotting data
+#   plot_data2 <- plot_data[grep(gsub("\\.", " ", i), plot_data$Country ), ]
+#   plot_data2 <- plot_data2[plot_data2$Crop %in% tolower(crops), ]
+#   
+#   if(length(grep("GHG", plot_data2$Metric)) > 1){
+#     
+#     plot_data2 <- plot_data2 %>% group_by(Metric) %>%
+#       summarise(Value=sum(Value), Country = unique(Country), Crop = unique(Crop))
+#   }
+#   
+#   # use a certain colour depending on the crop of interest
+#   # colour selections used above look quite nice.
+#   if(length(crops) == 1){
+#     
+#     if(crops == "sugar") cols <- c("#8B8878")
+#     if(crops == "cocoa") cols <- c("#8B4500")
+#     if(crops == "oilpalm") cols <- c("#6E8B3D")
+#     if(crops == "wheat") cols <- c("#EEB422")
+#     
+#   ggplot(plot_data2) +
+#     geom_col(aes(x = Metric, y = Value), fill = cols) +  
+#     xlab("") + 
+#     ylab("Index") + 
+#     ggtitle(gsub("\\.", " ", i)) +
+#     theme_bw() + 
+#     #ylim(0, 300) + 
+#     scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
+#     theme(legend.position = "none",
+#           #panel.background = element_blank(), 
+#           text = element_text(size = 10), 
+#           line = element_line(size = 0.5),
+#           legend.key.size = unit(0.6, 'cm'),
+#           # to add: legend background to white
+#           panel.grid = element_blank(),
+#           panel.border = element_rect(size = 0.2),
+#           axis.ticks = element_line(size = 0.2), 
+#           aspect.ratio = 1, 
+#           axis.text.x = element_text(angle = 90, vjust = 0.5),
+#           panel.background = element_rect(fill = "transparent",
+#                                           colour = NA_character_),
+#           plot.background = element_rect(fill = "transparent",
+#                                          colour = NA_character_)) 
+#     # + 
+#     #guides(fill=guide_legend(nrow=2,byrow=TRUE))
+#   
+#   
+#   # save the plots in a subfolder for use in Inkscape 
+#   ggsave(filename = paste0(outdir, "/barplots/Barplot_Indicators_forMap_", i, ".png"), width = 2, height = 2, units = "in")
+#   
+#   }else{
+#     
+# 
+#     cols_tab <- data.frame(crop = c("sugar", "cocoa", "oilpalm", "wheat"),
+#                            cols = c("#8B8878", "#8B4500", "#6E8B3D", "#EEB422"))
+#     
+#     
+#    cols <- cols_tab[cols_tab$crop %in% crops, "cols"]
+#    
+#   # plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugarcane", "sugarbeet", "cocoa", "oilpalm", "wheat"))
+#    plot_data2$Crop <- factor(plot_data2$Crop, levels = c("sugar", "cocoa", "oilpalm", "wheat"))
+#    
+#     ggplot(plot_data2) +
+#       geom_col(aes(x = Metric, y = Value, fill = Crop), position = "stack") + 
+#       scale_fill_manual(values = cols) +
+#       xlab("") + 
+#       ylab("Index") + 
+#       ggtitle(gsub("\\.", " ", i)) +
+#       theme_bw() + 
+#       scale_y_sqrt(limits = c(0,220), breaks = c(1, 10, 50, 100, 200, 300)) +
+#       theme(legend.position = "none",
+#             #panel.background = element_blank(), 
+#             text = element_text(size = 10), 
+#             line = element_line(size = 0.5),
+#             legend.key.size = unit(0.6, 'cm'),
+#             panel.grid = element_blank(),
+#             panel.border = element_rect(size = 0.2),
+#             axis.ticks = element_line(size = 0.2), 
+#             aspect.ratio = 1, 
+#             axis.text.x = element_text(angle = 90, vjust = 0.5),
+#             panel.background = element_rect(fill = "transparent",
+#                                             colour = NA_character_),
+#             plot.background = element_rect(fill = "transparent",
+#                                            colour = NA_character_)) 
+# 
+#     
+#     
+#     # save the plots in a subfolder for use in Inkscape 
+#     ggsave(filename = paste0(outdir, "/barplots/Barplot_Indicators_forMap_", i, ".png"), width = 2, height = 2, units = "in")
+#     
+#     
+#   }
+# 
+# }
+# 
 
 # notes:
-# remember to note down when certain indicators don't cover some crops, e.g. cocoa has less. 
 
 
+##%######################################################%##
+#                                                          #
+####                 stacked barchart                   ####
+#                                                          #
+##%######################################################%##
 
-#### stacked barchart ####
 
 plot_data <- read.csv( paste0(outdir, "Plot_data_country_barplots_FIG2.csv"))
 
@@ -567,15 +579,18 @@ plot_data$Crop[plot_data$Crop == "sugarcane"] <- "sugar"
 suppliers$crop[suppliers$crop == "sugarbeet"] <- "sugar"
 suppliers$crop[suppliers$crop == "sugarcane"] <- "sugar"
 
-suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
-suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
-suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
-suppliers$partner[suppliers$partner == "United.Kingdom"] <- "United Kingdom"
-suppliers$partner[suppliers$partner == "El.Salvador"] <- "El Salvador"
+#suppliers$partner[suppliers$partner == "United.States.of.America"] <- "United States"
+#suppliers$partner[suppliers$partner == "Cote.d.Ivoire"] <- "Côte d'Ivoire"
+#suppliers$partner[suppliers$partner == "Viet.Nam"] <- "Vietnam"
+#suppliers$partner[suppliers$partner == "United.Kingdom"] <- "United Kingdom"
+#suppliers$partner[suppliers$partner == "El.Salvador"] <- "El Salvador"
 
 plot_data2 <- left_join(suppliers, plot_data, by=c('partner'='Country', 'crop'='Crop'))
 
 plot_data2$Country_crop <- paste(plot_data2$partner, "-\n",  plot_data2$crop)
+
+# to order the bars by height
+plot_data2$Country_crop <- factor(plot_data2$Country_crop, levels = rev(c("United Kingdom -\n wheat", "Malaysia -\n oilpalm", "Indonesia -\n oilpalm", "United Kingdom -\n sugar", "Côte d'Ivoire -\n cocoa",  "Ghana -\n cocoa", "Nigeria -\n cocoa", "Cameroon -\n cocoa")))
 
 ggplot(plot_data2, aes(fill=Metric, y=Country_crop, x=Value)) + 
   geom_bar(position="stack", stat="identity") + 
