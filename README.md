@@ -1,6 +1,6 @@
 # Biscuit_project
 
-This repository contains work carried out as part of the "Biscuit Project", funded by UCL Grand Challenges and Global Engagment Offices and led by Abbie Chapman and Charlie Outhwaite. 
+This repository contains work carried out as part of the "Biscuit Project", funded by UCL Grand Challenges and Global Engagement Offices and led by Abbie Chapman and Charlie Outhwaite. 
 
 This is a private repository for the code and outputs associated with that project. 
 
