@@ -54,7 +54,10 @@ length(countries) # currently 7 suppliers of interest for 2019 at 5%
 #### Task 1: Summary stats for each source country ####
 
 # We will use the total impact raster files
-files <- list.files(paste0(datadir, "/Indicator_Maps"), pattern = "_Total.tif")
+#files <- list.files(paste0(datadir, "/Indicator_Maps"), pattern = "_Total.tif")
+
+# do the same but with the per tonne of crop data
+files <- list.files(paste0(datadir, "/Indicator_Maps"), pattern = "_CT.tif")
 
 # 5 files
 # "GHG_Emissons_Total.tif"
@@ -62,6 +65,13 @@ files <- list.files(paste0(datadir, "/Indicator_Maps"), pattern = "_Total.tif")
 # "N_Marine_BioDiv_Total.tif"
 # "P_Marine_BioDiv_Total.tif"
 # "Water_Debt_Total.tif" 
+
+# 5 files
+# "GHG_Emissons_CT.tif"    
+# "LD_BioDiv_CT.tif"       
+# "N_Marine_BioDiv_CT.tif" 
+# "P_Marine_BioDiv_CT.tif"
+# "Water_Debt_CT.tif"
 
 # each file can be opened as a raster stack which has a band per crop (See table in README)
 
@@ -149,14 +159,22 @@ GHG_sums <- exact_extract(x = GHG_RS, y = ctry_shps, fun = c('sum', 'mean', 'min
 GHG_sums$partner <- ctry_shps$NAME_0
 
 # organise col names
-colnames(GHG_sums) <- sub("GHG_Emissons_Total.1", "Cocoa", colnames(GHG_sums))
-colnames(GHG_sums) <- sub("GHG_Emissons_Total.2", "Oilpalm", colnames(GHG_sums))
-colnames(GHG_sums) <- sub("GHG_Emissons_Total.3", "SugarBeet", colnames(GHG_sums))
-colnames(GHG_sums) <- sub("GHG_Emissons_Total.4", "SugarCane", colnames(GHG_sums))
-colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
+# colnames(GHG_sums) <- sub("GHG_Emissons_Total.1", "Cocoa", colnames(GHG_sums))
+# colnames(GHG_sums) <- sub("GHG_Emissons_Total.2", "Oilpalm", colnames(GHG_sums))
+# colnames(GHG_sums) <- sub("GHG_Emissons_Total.3", "SugarBeet", colnames(GHG_sums))
+# colnames(GHG_sums) <- sub("GHG_Emissons_Total.4", "SugarCane", colnames(GHG_sums))
+# colnames(GHG_sums) <- sub("GHG_Emissons_Total.5", "Wheat", colnames(GHG_sums))
+
+# organise col names
+colnames(GHG_sums) <- sub("GHG_Emissons_CT_1", "Cocoa", colnames(GHG_sums))
+colnames(GHG_sums) <- sub("GHG_Emissons_CT_2", "Oilpalm", colnames(GHG_sums))
+colnames(GHG_sums) <- sub("GHG_Emissons_CT_3", "SugarBeet", colnames(GHG_sums))
+colnames(GHG_sums) <- sub("GHG_Emissons_CT_4", "SugarCane", colnames(GHG_sums))
+colnames(GHG_sums) <- sub("GHG_Emissons_CT_5", "Wheat", colnames(GHG_sums))
 
 # save
-write.csv(GHG_sums, paste0(outdir, "GHG_summaries_allcrops.csv"), row.names = F)
+#write.csv(GHG_sums, paste0(outdir, "GHG_summaries_allcrops.csv"), row.names = F)
+write.csv(GHG_sums, paste0(outdir, "GHG_summaries_allcrops_CT.csv"), row.names = F)
 
 
 #### 2. Land biodiversity impact ####
@@ -186,13 +204,22 @@ LND_sums <- exact_extract(x = LND_RS, y = ctry_shps, fun = c('sum', 'mean', 'min
 # need to organise the outputted info
 LND_sums$partner <- ctry_shps$NAME_0
 
-colnames(LND_sums) <- sub("LD_BioDiv_Total.1", "Cocoa", colnames(LND_sums))
-colnames(LND_sums) <- sub("LD_BioDiv_Total.2", "Oilpalm", colnames(LND_sums))
-colnames(LND_sums) <- sub("LD_BioDiv_Total.3", "SugarBeet", colnames(LND_sums))
-colnames(LND_sums) <- sub("LD_BioDiv_Total.4", "SugarCane", colnames(LND_sums))
-colnames(LND_sums) <- sub("LD_BioDiv_Total.5", "Wheat", colnames(LND_sums))
+# colnames(LND_sums) <- sub("LD_BioDiv_Total.1", "Cocoa", colnames(LND_sums))
+# colnames(LND_sums) <- sub("LD_BioDiv_Total.2", "Oilpalm", colnames(LND_sums))
+# colnames(LND_sums) <- sub("LD_BioDiv_Total.3", "SugarBeet", colnames(LND_sums))
+# colnames(LND_sums) <- sub("LD_BioDiv_Total.4", "SugarCane", colnames(LND_sums))
+# colnames(LND_sums) <- sub("LD_BioDiv_Total.5", "Wheat", colnames(LND_sums))
 
-write.csv(LND_sums, paste0(outdir, "LND_summaries_allcrops.csv"), row.names = F)
+
+colnames(LND_sums) <- sub("LD_BioDiv_CT_1", "Cocoa", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_CT_2", "Oilpalm", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_CT_3", "SugarBeet", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_CT_4", "SugarCane", colnames(LND_sums))
+colnames(LND_sums) <- sub("LD_BioDiv_CT_5", "Wheat", colnames(LND_sums))
+
+
+#write.csv(LND_sums, paste0(outdir, "LND_summaries_allcrops.csv"), row.names = F)
+write.csv(LND_sums, paste0(outdir, "LND_summaries_allcrops_CT.csv"), row.names = F)
 
 #### 3. N biodiv impact ####
 
@@ -221,15 +248,21 @@ Nit_sums <- exact_extract(x = Nit_RS, y = ctry_shps, fun = c('sum', 'mean', 'min
 # need to organise the outputted info
 Nit_sums$partner <- ctry_shps$NAME_0
 
-colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.1", "Oilpalm", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.2", "SugarBeet", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.3", "SugarCane", colnames(Nit_sums))
-colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.4", "Wheat", colnames(Nit_sums))
+# colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.1", "Oilpalm", colnames(Nit_sums))
+# colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.2", "SugarBeet", colnames(Nit_sums))
+# colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.3", "SugarCane", colnames(Nit_sums))
+# colnames(Nit_sums) <- sub("N_Marine_BioDiv_Total.4", "Wheat", colnames(Nit_sums))
+
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_CT_1", "Oilpalm", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_CT_2", "SugarBeet", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_CT_3", "SugarCane", colnames(Nit_sums))
+colnames(Nit_sums) <- sub("N_Marine_BioDiv_CT_4", "Wheat", colnames(Nit_sums))
 
 Nit_sums$sum.Cocoa <- NA
 
 # save
-write.csv(Nit_sums, paste0(outdir, "Nit_summaries_allcrops.csv"), row.names = F)
+#write.csv(Nit_sums, paste0(outdir, "Nit_summaries_allcrops.csv"), row.names = F)
+write.csv(Nit_sums, paste0(outdir, "Nit_summaries_allcrops_CT.csv"), row.names = F)
 
 
 #### 4. P biodiv impact ####
@@ -258,15 +291,21 @@ Pho_sums <- exact_extract(x = Pho_RS, y = ctry_shps, fun = c('sum', 'mean', 'min
 # need to organise the outputted info
 Pho_sums$partner <- ctry_shps$NAME_0
 
-colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.1", "Oilpalm", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.2", "SugarBeet", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.3", "SugarCane", colnames(Pho_sums))
-colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.4", "Wheat", colnames(Pho_sums))
+# colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.1", "Oilpalm", colnames(Pho_sums))
+# colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.2", "SugarBeet", colnames(Pho_sums))
+# colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.3", "SugarCane", colnames(Pho_sums))
+# colnames(Pho_sums) <- sub("P_Marine_BioDiv_Total.4", "Wheat", colnames(Pho_sums))
+
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_CT_1", "Oilpalm", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_CT_2", "SugarBeet", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_CT_3", "SugarCane", colnames(Pho_sums))
+colnames(Pho_sums) <- sub("P_Marine_BioDiv_CT_4", "Wheat", colnames(Pho_sums))
 
 Pho_sums$sum.Cocoa <- NA
 
 # save
-write.csv(Pho_sums, paste0(outdir, "Pho_summaries_allcrops.csv"), row.names = F)
+#write.csv(Pho_sums, paste0(outdir, "Pho_summaries_allcrops.csv"), row.names = F)
+write.csv(Pho_sums, paste0(outdir, "Pho_summaries_allcrops_CT.csv"), row.names = F)
 
 
 
@@ -304,15 +343,21 @@ WAT_sums <- exact_extract(x = WAT_RS, y = ctry_shps, fun = c('sum', 'mean', 'min
 # need to organise the outputted info
 WAT_sums$partner <- ctry_shps$NAME_0
 
-colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Oilpalm", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.2", "SugarBeet", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.3", "SugarCane", colnames(WAT_sums))
-colnames(WAT_sums) <- sub("Water_Debt_Total.4", "Wheat", colnames(WAT_sums))
+# colnames(WAT_sums) <- sub("Water_Debt_Total.1", "Oilpalm", colnames(WAT_sums))
+# colnames(WAT_sums) <- sub("Water_Debt_Total.2", "SugarBeet", colnames(WAT_sums))
+# colnames(WAT_sums) <- sub("Water_Debt_Total.3", "SugarCane", colnames(WAT_sums))
+# colnames(WAT_sums) <- sub("Water_Debt_Total.4", "Wheat", colnames(WAT_sums))
+
+colnames(WAT_sums) <- sub("Water_Debt_CT_1", "Oilpalm", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_CT_2", "SugarBeet", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_CT_3", "SugarCane", colnames(WAT_sums))
+colnames(WAT_sums) <- sub("Water_Debt_CT_4", "Wheat", colnames(WAT_sums))
 
 WAT_sums$sum.Cocoa <- NA
 
 
-write.csv(WAT_sums, paste0(outdir, "WAT_summaries_allcrops.csv"), row.names = F)
+#write.csv(WAT_sums, paste0(outdir, "WAT_summaries_allcrops.csv"), row.names = F)
+write.csv(WAT_sums, paste0(outdir, "WAT_summaries_allcrops_CT.csv"), row.names = F)
 
 
 # organise all the summed values
@@ -333,7 +378,7 @@ all_sums$Country <- rep(GHG_sums$partner, 5)
 View(all_sums)
 
 # save data
-write.csv(all_sums, file = paste0(outdir, "Indicator_summaries_perCountry_tradepartners_5perc.csv"))
+write.csv(all_sums, file = paste0(outdir, "Indicator_summaries_perCountry_tradepartners_5perc_CT.csv"))
 
 
 ##%######################################################%##
@@ -369,7 +414,8 @@ plot_data <- as.data.frame(plot_data)
 plot_data$Value <- as.numeric(as.character(plot_data$Value))
 
 # save
-write.csv(plot_data, paste0(outdir, "Plot_data_country_barplots_FIG2.csv"), row.names = F)
+#write.csv(plot_data, paste0(outdir, "Plot_data_country_barplots_FIG2.csv"), row.names = F)
+write.csv(plot_data, paste0(outdir, "Plot_data_country_barplots_FIG2_CT.csv"), row.names = F)
 
 
 
@@ -407,7 +453,8 @@ plot_data2$Country_crop <- factor(plot_data2$Country_crop, levels = rev(c("Malay
 plot_data2 <- distinct(plot_data2)
 
 # save
-write.csv(plot_data2, paste0(outdir, "Plot_data_country_barplots_FIG2_DATA.csv"), row.names = F)
+# write.csv(plot_data2, paste0(outdir, "Plot_data_country_barplots_FIG2_DATA.csv"), row.names = F)
+write.csv(plot_data2, paste0(outdir, "Plot_data_country_barplots_FIG2_DATA_CT.csv"), row.names = F)
 
 
 # create plot
@@ -421,4 +468,5 @@ ggplot(plot_data2, aes(fill=Metric, y=Country_crop, x=Value)) +
         text = element_text(size = 12))
 
 # save
-ggsave(filename = paste0(outdir, "Figure2_stackedbarplot_suppliers_impact.pdf"))
+# ggsave(filename = paste0(outdir, "Figure2_stackedbarplot_suppliers_impact.pdf"))
+ggsave(filename = paste0(outdir, "Figure2_stackedbarplot_suppliers_impact_CT.pdf"))
