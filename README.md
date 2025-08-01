@@ -22,8 +22,7 @@ The final function can generate bivariate maps that combine species
 richness with any other impact factor or production map.
 
 *Script 2_Highes_impact.R*
-# This script generates maps that outline the highest impact areas 
-# created by different crops on global species richness.
+This script generates maps that outline the highest impact areas created by different crops on global species richness.
 
 
 
