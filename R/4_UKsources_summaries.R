@@ -146,7 +146,7 @@ cellStats(GHG, stat = "max")
 max1 <- max(cellStats(GHG, stat = "max"))
 min1 <- 0
 
-# carry out the rescaling
+# carry out the rescaling (min-max normalisation)
 GHG_RS <- ((GHG-min1)/(max1-min1))
 
 
