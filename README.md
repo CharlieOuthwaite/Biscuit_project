@@ -15,24 +15,24 @@ In this paper, summarised the global-scale environmental impacts of four focal c
 
 Here we overly the five impact indicators alongside harvested area and species richness to determine hotspots of impact. 
 
-*Script 1_Global_Map_Species_Richness.R*
+*1_Global_Map_Species_Richness.R*
 This script creates global maps by overlaying crop area data with species 
 richness to visualize the impact of different crops on biodiversity. 
 The final function can generate bivariate maps that combine species 
 richness with any other impact factor or production map.
 
-*Script 2_Highes_impact.R*
+*2_Highes_impact.R*
 This script generates maps that outline the highest impact areas created by different crops on global species richness.
 
 
 
 ## Part 2 - Assessing the impacts of crops imported by the UK 
 
-*Script 3_Trade_Component.R* - Abbie Chapman
+*3_Trade_Component.R* (Abbie Chapman)
 This script was used to compute the values in Table 1 in the manuscript. 
 In it, we open and process the trade data before using it to compute relevant measures of trade of the focal crops with the UK.
 
-*Script 4_UKsources_summaries.R* - Charlie Outhwaite
+*4_UKsources_summaries.R* (Charlie Outhwaite)
 This script uses information on the countries that the UK imports biscuit crops from and global maps on environmental impact indicators of the same crops to assess the level
 of impact on biodiversity in those source regions.
 
