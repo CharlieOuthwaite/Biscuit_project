@@ -28,6 +28,8 @@ This script generates maps that outline the highest impact areas created by diff
 
 ## Part 2 - Assessing the impacts of crops imported by the UK 
 
+Here, we combine information on the amount of crops imported by the UK, to determine the main sources of crops, with the impact indicator values for those countries. 
+
 *3_Trade_Component.R* (Abbie Chapman)
 This script was used to compute the values in Table 1 in the manuscript. 
 In it, we open and process the trade data before using it to compute relevant measures of trade of the focal crops with the UK.
@@ -40,7 +42,7 @@ of impact on biodiversity in those source regions.
 
 ## Part 3 - Identifying the potential overlap of crop production with endangered species ranges - Amy Molotoks
 
-
+Here, we use IUCN data for threatened mammal species and Mapspam 2010 crop data for the physical area of assessed commodities to examine the proportion of each species' range overlapping with crop production. This script contains Indonesian palm oil as an example and was used to create Figure 7 and 8 in the manuscript. This section of analysis was carried out in Google Earth Engine, the code can be seen here: https://code.earthengine.google.com/57962bee657aa8cce8df348b92cd711a 
 
 
 
